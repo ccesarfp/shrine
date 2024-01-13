@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option go_package = "./pkg/protobuf";
+
+service Token {
+  rpc CreateToken (UserRequest) returns (TokenResponse) {}
+}
+
+message UserRequest {
+  string id = 1;
+}
+
+message TokenResponse {
+  string status = 1;
+  string token = 2;
+}
