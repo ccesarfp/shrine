@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"github.com/ccesarfp/shrine/pkg/protobuf"
+	"github.com/ccesarfp/shrine/internal/protobuf"
 )
 
 type Server struct {

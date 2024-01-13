@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "./pkg/protobuf";
+option go_package = "./internal/protobuf";
 
 service Token {
   rpc CreateToken (UserRequest) returns (TokenResponse) {}

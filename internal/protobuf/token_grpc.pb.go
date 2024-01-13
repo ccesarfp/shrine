@@ -42,7 +42,7 @@ func (c *tokenClient) CreateToken(ctx context.Context, in *UserRequest, opts ...
 	return out, nil
 }
 
-// TokenServer is the server API for Token service.
+// TokenServer is the shrine API for Token service.
 // All implementations must embed UnimplementedTokenServer
 // for forward compatibility
 type TokenServer interface {
