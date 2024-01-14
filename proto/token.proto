@@ -16,9 +16,10 @@ service Token {
 // Requests
 message UserRequest {
   int64 id = 1;
-  string appOrigin = 2;
-  int32 accessLevel = 3;
-  int32 hoursToExpire = 4;
+  string name = 2;
+  string appOrigin = 3;
+  int32 accessLevel = 4;
+  int32 hoursToExpire = 5;
 }
 
 message TokenRequestWithId {
@@ -44,7 +45,7 @@ message UserResponseWithToken {
 
 message UserResponse {
   int64 id = 1;
-  string appOrigin = 2;
-  int32 accessLevel = 3;
-  int32 hoursToExpire = 4;
+  string name = 2;
+  string appOrigin = 3;
+  int32 accessLevel = 4;
 }
