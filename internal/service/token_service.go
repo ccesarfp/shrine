@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/ccesarfp/shrine/internal/errors"
 	"github.com/ccesarfp/shrine/internal/model"
 	"github.com/ccesarfp/shrine/internal/protobuf"
 	"github.com/golang-jwt/jwt/v5"
@@ -66,6 +67,10 @@ func (s *Server) GetClaimsByToken(ctx context.Context, in *protobuf.TokenRequest
 
 	token, claims, err := t.GetClaims(jwtSecretKey)
 	if err != nil {
+		if token.Valid == false {
+			expiredToken := errors.ExpiredToken{}
+			return nil, status.Error(codes.Unauthenticated, expiredToken.Error())
+		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -78,7 +83,7 @@ func (s *Server) GetClaimsByToken(ctx context.Context, in *protobuf.TokenRequest
 		}, nil
 	}
 
-	return nil, status.Error(codes.Unauthenticated, "the token has expired")
+	return nil, status.Error(codes.Unknown, "Error")
 }
 
 func (s *Server) CheckTokenValidity(ctx context.Context, in *protobuf.TokenRequest) (*protobuf.TokenStatus, error) {
@@ -87,11 +92,7 @@ func (s *Server) CheckTokenValidity(ctx context.Context, in *protobuf.TokenReque
 
 	isValid, err := t.CheckValidity(jwtSecretKey)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	if isValid == false {
-		return nil, status.Error(codes.Unauthenticated, "the token has expired")
+		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
 
 	return &protobuf.TokenStatus{Status: isValid}, nil

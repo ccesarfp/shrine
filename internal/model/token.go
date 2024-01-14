@@ -75,7 +75,7 @@ func (t Token) GetClaims(jwtSecretKey string) (*jwt.Token, jwt.MapClaims, error)
 	})
 
 	if err != nil {
-		return nil, nil, err
+		return token, nil, err
 	}
 
 	return token, claims, nil
