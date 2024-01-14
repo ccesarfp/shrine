@@ -1,16 +1,50 @@
 syntax = "proto3";
 
+// path to save go files
 option go_package = "./internal/protobuf";
 
+// token service
 service Token {
+  // create token using user data and return jwt
   rpc CreateToken (UserRequest) returns (TokenResponse) {}
+  // receive token and return all user data
+  rpc GetClaimsByToken (TokenRequest) returns (UserResponse) {}
+  // receive token ID and return all user data
+  rpc GetClaimsByKey (TokenRequestWithId) returns (UserResponseWithToken) {}
 }
 
+// Requests
 message UserRequest {
+  int64 id = 1;
+  string appOrigin = 2;
+  int32 accessLevel = 3;
+  int32 hoursToExpire = 4;
+}
+
+message TokenRequestWithId {
   string id = 1;
 }
 
+message TokenRequest {
+  string token = 1;
+}
+
+// Responses
 message TokenResponse {
-  string status = 1;
-  string token = 2;
+  string token = 1;
+}
+
+message UserResponseWithToken {
+  int64 id = 1;
+  string appOrigin = 2;
+  int32 accessLevel = 3;
+  string token = 4;
+  int32 hoursToExpire = 5;
+}
+
+message UserResponse {
+  int64 id = 1;
+  string appOrigin = 2;
+  int32 accessLevel = 3;
+  int32 hoursToExpire = 4;
 }
