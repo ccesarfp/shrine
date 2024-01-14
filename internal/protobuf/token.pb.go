@@ -20,6 +20,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Requests
 type UserRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -185,6 +186,7 @@ func (x *TokenRequest) GetToken() string {
 	return ""
 }
 
+// Responses
 type TokenResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
