@@ -11,6 +11,8 @@ service Token {
   rpc GetClaimsByToken (TokenRequest) returns (UserResponse) {}
   // receive token ID and return all user data
   rpc GetClaimsByKey (TokenRequestWithId) returns (UserResponseWithToken) {}
+  // receive token and return if is valid
+  rpc CheckTokenValidity (TokenRequest) returns (TokenStatus) {}
 }
 
 // Requests
@@ -48,4 +50,8 @@ message UserResponse {
   string name = 2;
   string appOrigin = 3;
   int32 accessLevel = 4;
+}
+
+message TokenStatus {
+  bool status = 1;
 }

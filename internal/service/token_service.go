@@ -2,12 +2,11 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"github.com/ccesarfp/shrine/internal/model"
 	"github.com/ccesarfp/shrine/internal/protobuf"
 	"github.com/golang-jwt/jwt/v5"
-	"log"
-	"os"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"time"
 )
 
@@ -38,15 +37,13 @@ func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*pr
 		"exp":         time.Now().Add(time.Hour * time.Duration(u.HoursToExpire())).Unix(),
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	tokenString, err := token.SignedString([]byte(os.Getenv(jwtSecretKey)))
+	token, err := model.Token{}.CreateToken(claims, jwtSecretKey)
 	if err != nil {
-		log.Panicln("Error trying to generate JWT token, err=", err.Error())
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &protobuf.TokenResponse{
-		Token: tokenString,
+		Token: token,
 	}, nil
 }
 
@@ -67,13 +64,9 @@ func (s *Server) GetClaimsByKey(ctx context.Context, in *protobuf.TokenRequestWi
 func (s *Server) GetClaimsByToken(ctx context.Context, in *protobuf.TokenRequest) (*protobuf.UserResponse, error) {
 	t := model.NewToken(in.Token)
 
-	claims := jwt.MapClaims{}
-	token, err := jwt.ParseWithClaims(t.Token(), claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(os.Getenv(jwtSecretKey)), nil
-	})
-
+	token, claims, err := t.GetClaims(jwtSecretKey)
 	if err != nil {
-		fmt.Println("Error parsing token, err=:", err)
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	if token.Valid {
@@ -85,5 +78,21 @@ func (s *Server) GetClaimsByToken(ctx context.Context, in *protobuf.TokenRequest
 		}, nil
 	}
 
-	return &protobuf.UserResponse{}, nil
+	return nil, status.Error(codes.Unauthenticated, "the token has expired")
+}
+
+func (s *Server) CheckTokenValidity(ctx context.Context, in *protobuf.TokenRequest) (*protobuf.TokenStatus, error) {
+
+	t := model.NewToken(in.Token)
+
+	isValid, err := t.CheckValidity(jwtSecretKey)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	if isValid == false {
+		return nil, status.Error(codes.Unauthenticated, "the token has expired")
+	}
+
+	return &protobuf.TokenStatus{Status: isValid}, nil
 }

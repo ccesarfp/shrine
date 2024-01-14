@@ -28,6 +28,8 @@ type TokenClient interface {
 	GetClaimsByToken(ctx context.Context, in *TokenRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	// receive token ID and return all user data
 	GetClaimsByKey(ctx context.Context, in *TokenRequestWithId, opts ...grpc.CallOption) (*UserResponseWithToken, error)
+	// receive token and return if is valid
+	CheckTokenValidity(ctx context.Context, in *TokenRequest, opts ...grpc.CallOption) (*TokenStatus, error)
 }
 
 type tokenClient struct {
@@ -65,6 +67,15 @@ func (c *tokenClient) GetClaimsByKey(ctx context.Context, in *TokenRequestWithId
 	return out, nil
 }
 
+func (c *tokenClient) CheckTokenValidity(ctx context.Context, in *TokenRequest, opts ...grpc.CallOption) (*TokenStatus, error) {
+	out := new(TokenStatus)
+	err := c.cc.Invoke(ctx, "/Token/CheckTokenValidity", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TokenServer is the server API for Token service.
 // All implementations must embed UnimplementedTokenServer
 // for forward compatibility
@@ -75,6 +86,8 @@ type TokenServer interface {
 	GetClaimsByToken(context.Context, *TokenRequest) (*UserResponse, error)
 	// receive token ID and return all user data
 	GetClaimsByKey(context.Context, *TokenRequestWithId) (*UserResponseWithToken, error)
+	// receive token and return if is valid
+	CheckTokenValidity(context.Context, *TokenRequest) (*TokenStatus, error)
 	mustEmbedUnimplementedTokenServer()
 }
 
@@ -90,6 +103,9 @@ func (UnimplementedTokenServer) GetClaimsByToken(context.Context, *TokenRequest)
 }
 func (UnimplementedTokenServer) GetClaimsByKey(context.Context, *TokenRequestWithId) (*UserResponseWithToken, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetClaimsByKey not implemented")
+}
+func (UnimplementedTokenServer) CheckTokenValidity(context.Context, *TokenRequest) (*TokenStatus, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckTokenValidity not implemented")
 }
 func (UnimplementedTokenServer) mustEmbedUnimplementedTokenServer() {}
 
@@ -158,6 +174,24 @@ func _Token_GetClaimsByKey_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Token_CheckTokenValidity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TokenServer).CheckTokenValidity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Token/CheckTokenValidity",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TokenServer).CheckTokenValidity(ctx, req.(*TokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Token_ServiceDesc is the grpc.ServiceDesc for Token service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -176,6 +210,10 @@ var Token_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetClaimsByKey",
 			Handler:    _Token_GetClaimsByKey_Handler,
+		},
+		{
+			MethodName: "CheckTokenValidity",
+			Handler:    _Token_CheckTokenValidity_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
