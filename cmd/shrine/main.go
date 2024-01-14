@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/ccesarfp/shrine/internal/protobuf"
 	"github.com/ccesarfp/shrine/internal/service"
+	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -15,6 +16,13 @@ const network string = "tcp"
 var start = time.Now()
 
 func main() {
+	log.Println("Getting environment variables")
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	log.Println("Starting gRPC shrine on", address)
 
 	log.Println("Starting listener")
