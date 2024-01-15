@@ -17,7 +17,6 @@ var start = time.Now()
 
 func main() {
 	log.Println("Getting environment variables")
-
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")

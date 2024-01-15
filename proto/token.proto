@@ -39,10 +39,9 @@ message TokenResponse {
 
 message UserResponseWithToken {
   int64 id = 1;
-  string appOrigin = 2;
+  string name = 2;
   int32 accessLevel = 3;
   string token = 4;
-  int32 hoursToExpire = 5;
 }
 
 message UserResponse {

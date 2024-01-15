@@ -27,11 +27,11 @@ func NewTokenWithId(id string) Token {
 	}
 }
 
-func (t Token) Id() string {
+func (t *Token) Id() string {
 	return t.id
 }
 
-func (t Token) Token() string {
+func (t *Token) Token() string {
 	return t.token
 }
 
@@ -45,7 +45,7 @@ func (t Token) Token() string {
 //   - err error - error message
 //
 // **
-func (t Token) CreateToken(claims jwt.MapClaims, jwtSecretKey string) (string, error) {
+func (t *Token) CreateToken(claims jwt.MapClaims, jwtSecretKey string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString([]byte(os.Getenv(jwtSecretKey)))
@@ -67,7 +67,7 @@ func (t Token) CreateToken(claims jwt.MapClaims, jwtSecretKey string) (string, e
 //   - err error - error message
 //
 // **
-func (t Token) GetClaims(jwtSecretKey string) (*jwt.Token, jwt.MapClaims, error) {
+func (t *Token) GetClaims(jwtSecretKey string) (*jwt.Token, jwt.MapClaims, error) {
 
 	claims := jwt.MapClaims{}
 	token, err := jwt.ParseWithClaims(t.Token(), claims, func(token *jwt.Token) (interface{}, error) {
@@ -82,7 +82,7 @@ func (t Token) GetClaims(jwtSecretKey string) (*jwt.Token, jwt.MapClaims, error)
 
 }
 
-func (t Token) CheckValidity(jwtSecretKey string) (bool, error) {
+func (t *Token) CheckValidity(jwtSecretKey string) (bool, error) {
 
 	isValid, _, err := t.GetClaims(jwtSecretKey)
 	if err != nil {
@@ -90,4 +90,8 @@ func (t Token) CheckValidity(jwtSecretKey string) (bool, error) {
 	}
 
 	return isValid.Valid, nil
+}
+
+func (t *Token) SetToken(token string) {
+	t.token = token
 }

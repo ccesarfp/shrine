@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"github.com/ccesarfp/shrine/internal/config"
 	"github.com/ccesarfp/shrine/internal/errors"
 	"github.com/ccesarfp/shrine/internal/model"
 	"github.com/ccesarfp/shrine/internal/protobuf"
@@ -30,15 +32,31 @@ type Server struct {
 func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*protobuf.TokenResponse, error) {
 	u := model.NewUser(in.Id, in.Name, in.AppOrigin, in.AccessLevel, in.HoursToExpire)
 
+	exp := time.Now().Add(time.Hour * time.Duration(u.HoursToExpire()))
+
 	claims := jwt.MapClaims{
 		"id":          u.Id(),
 		"name":        u.Name(),
 		"appOrigin":   u.AppOrigin(),
 		"accessLevel": u.AccessLevel(),
-		"exp":         time.Now().Add(time.Hour * time.Duration(u.HoursToExpire())).Unix(),
+		"exp":         exp.Unix(),
 	}
 
-	token, err := model.Token{}.CreateToken(claims, jwtSecretKey)
+	// Creating Token
+	t := model.Token{}
+	token, err := t.CreateToken(claims, jwtSecretKey)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	// Creating Redis Client instance
+	client, err := config.NewRedisClient()
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	// Writing token to db
+	err = client.Set(ctx, fmt.Sprintf("%v-%v", u.Id(), u.AppOrigin()), token, exp.Sub(time.Now())).Err()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -48,10 +66,56 @@ func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*pr
 	}, nil
 }
 
+// GetClaimsByKey Retrieve data from JWT using Token ID
+// params:
+//   - TokenRequestWithId - token id
+//
+// result:
+//   - UserResponseWithToken - user data and token
+//
+// **
 func (s *Server) GetClaimsByKey(ctx context.Context, in *protobuf.TokenRequestWithId) (*protobuf.UserResponseWithToken, error) {
-	return &protobuf.UserResponseWithToken{
-		Token: "aaaaa",
-	}, nil
+	t := model.NewTokenWithId(in.Id)
+
+	// Creating Redis Client instance
+	client, err := config.NewRedisClient()
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	// Searching token in db
+	tokenString, err := client.Get(ctx, t.Id()).Result()
+	if err != nil {
+		// If the token does not exist in the db, returns Not Found
+		if err.Error() == "redis: nil" {
+			return nil, status.Error(codes.NotFound, "token does not exist")
+		}
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	t.SetToken(tokenString)
+
+	// Getting claims
+	token, claims, err := t.GetClaims(jwtSecretKey)
+	if err != nil {
+		// If token is not valid, return Unauthenticated
+		if token.Valid == false {
+			expiredToken := errors.ExpiredToken{}
+			return nil, status.Error(codes.Unauthenticated, expiredToken.Error())
+		}
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	// If token is valid, return claims
+	if token.Valid {
+		return &protobuf.UserResponseWithToken{
+			Id:          int64(claims["id"].(float64)),
+			Name:        claims["name"].(string),
+			AccessLevel: int32(claims["accessLevel"].(float64)),
+			Token:       tokenString,
+		}, nil
+	}
+
+	return nil, status.Error(codes.Unknown, "Error")
 }
 
 // GetClaimsByToken Retrieve data from JWT
@@ -65,8 +129,10 @@ func (s *Server) GetClaimsByKey(ctx context.Context, in *protobuf.TokenRequestWi
 func (s *Server) GetClaimsByToken(ctx context.Context, in *protobuf.TokenRequest) (*protobuf.UserResponse, error) {
 	t := model.NewToken(in.Token)
 
+	// Getting claims
 	token, claims, err := t.GetClaims(jwtSecretKey)
 	if err != nil {
+		// If token is not valid, return Unauthenticated
 		if token.Valid == false {
 			expiredToken := errors.ExpiredToken{}
 			return nil, status.Error(codes.Unauthenticated, expiredToken.Error())
@@ -74,6 +140,7 @@ func (s *Server) GetClaimsByToken(ctx context.Context, in *protobuf.TokenRequest
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	// If token is valid, return claims
 	if token.Valid {
 		return &protobuf.UserResponse{
 			Id:          int64(claims["id"].(float64)),
@@ -86,6 +153,14 @@ func (s *Server) GetClaimsByToken(ctx context.Context, in *protobuf.TokenRequest
 	return nil, status.Error(codes.Unknown, "Error")
 }
 
+// CheckTokenValidity Verify token validity
+// params:
+//   - TokenRequest - user token
+//
+// result:
+//   - TokenStatus - token status
+//
+// **
 func (s *Server) CheckTokenValidity(ctx context.Context, in *protobuf.TokenRequest) (*protobuf.TokenStatus, error) {
 
 	t := model.NewToken(in.Token)
