@@ -14,6 +14,6 @@ import (
 //   - formatted key with user id + application name
 //
 // **
-func PrepareKey(id int, appName string) string {
+func PrepareKey(id int64, appName string) string {
 	return fmt.Sprintf("%d-%s", id, strings.ToLower(appName))
 }

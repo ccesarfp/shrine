@@ -2,11 +2,11 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"github.com/ccesarfp/shrine/internal/config"
 	"github.com/ccesarfp/shrine/internal/errors"
 	"github.com/ccesarfp/shrine/internal/model"
 	"github.com/ccesarfp/shrine/internal/protobuf"
+	"github.com/ccesarfp/shrine/pkg/util"
 	"github.com/golang-jwt/jwt/v5"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -30,15 +30,18 @@ type Server struct {
 //
 // **
 func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*protobuf.TokenResponse, error) {
-	u := model.NewUser(in.Id, in.Name, in.AppOrigin, in.AccessLevel, in.HoursToExpire)
+	u, err := model.NewUser(in.Id, in.Name, in.AppOrigin, in.AccessLevel, in.HoursToExpire)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 
-	exp := time.Now().Add(time.Hour * time.Duration(u.HoursToExpire()))
+	exp := time.Now().Add(time.Hour * time.Duration(u.HoursToExpire))
 
 	claims := jwt.MapClaims{
-		"id":          u.Id(),
-		"name":        u.Name(),
-		"appOrigin":   u.AppOrigin(),
-		"accessLevel": u.AccessLevel(),
+		"id":          u.Id,
+		"name":        u.Name,
+		"appOrigin":   u.AppOrigin,
+		"accessLevel": u.AccessLevel,
 		"exp":         exp.Unix(),
 	}
 
@@ -56,7 +59,7 @@ func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*pr
 	}
 
 	// Writing token to db
-	err = client.Set(ctx, fmt.Sprintf("%v-%v", u.Id(), u.AppOrigin()), token, exp.Sub(time.Now())).Err()
+	err = client.Set(ctx, util.PrepareKey(u.Id, u.AppOrigin), token, exp.Sub(time.Now())).Err()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -84,7 +87,7 @@ func (s *Server) GetClaimsByKey(ctx context.Context, in *protobuf.TokenRequestWi
 	}
 
 	// Searching token in db
-	tokenString, err := client.Get(ctx, t.Id()).Result()
+	tokenString, err := client.Get(ctx, t.Id).Result()
 	if err != nil {
 		// If the token does not exist in the db, returns Not Found
 		if err.Error() == "redis: nil" {

@@ -7,32 +7,28 @@ import (
 )
 
 // Token Model
-// id - token id
+// Id - token Id
 // token - user token
 // **
 type Token struct {
-	id    string
-	token string
+	Id    string
+	Token string `validate:"omitempty,jwt"`
 }
 
 func NewToken(token string) Token {
 	return Token{
-		token: token,
+		Token: token,
 	}
 }
 
 func NewTokenWithId(id string) Token {
 	return Token{
-		id: id,
+		Id: id,
 	}
 }
 
-func (t *Token) Id() string {
-	return t.id
-}
-
-func (t *Token) Token() string {
-	return t.token
+func (t *Token) SetToken(token string) {
+	t.Token = token
 }
 
 // CreateToken create a token
@@ -70,7 +66,7 @@ func (t *Token) CreateToken(claims jwt.MapClaims, jwtSecretKey string) (string, 
 func (t *Token) GetClaims(jwtSecretKey string) (*jwt.Token, jwt.MapClaims, error) {
 
 	claims := jwt.MapClaims{}
-	token, err := jwt.ParseWithClaims(t.Token(), claims, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(t.Token, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv(jwtSecretKey)), nil
 	})
 
@@ -90,8 +86,4 @@ func (t *Token) CheckValidity(jwtSecretKey string) (bool, error) {
 	}
 
 	return isValid.Valid, nil
-}
-
-func (t *Token) SetToken(token string) {
-	t.token = token
 }

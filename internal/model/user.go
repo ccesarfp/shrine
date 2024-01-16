@@ -1,48 +1,40 @@
 package model
 
+import (
+	"github.com/go-playground/validator/v10"
+)
+
 // User Model
-// id - user id
-// name - name of user
-// appOrigin - name of the application responsible for the user
-// accessLevel - user level access
+// Id - user Id
+// Name - Name of user
+// AppOrigin - Name of the application responsible for the user
+// AccessLevel - user level access
 // token - user token
 // hoursToExpire - token expiration time
 // **
 type User struct {
-	id            int64
-	name          string
-	appOrigin     string
-	accessLevel   int32
-	token         string
-	hoursToExpire int32
+	Id            int64  `validate:"required"`
+	Name          string `validate:"required"`
+	AppOrigin     string `validate:"required"`
+	AccessLevel   int32  `validate:"required,min=1"`
+	Token         string `validate:"omitempty,jwt"`
+	HoursToExpire int32  `validate:"required,min=1"`
 }
 
-func NewUser(id int64, name string, appOrigin string, accessLevel int32, hoursToExpire int32) User {
-	return User{
-		id:            id,
-		name:          name,
-		appOrigin:     appOrigin,
-		accessLevel:   accessLevel,
-		hoursToExpire: hoursToExpire,
+func NewUser(id int64, name string, appOrigin string, accessLevel int32, hoursToExpire int32) (*User, error) {
+	u := User{
+		Id:            id,
+		Name:          name,
+		AppOrigin:     appOrigin,
+		AccessLevel:   accessLevel,
+		HoursToExpire: hoursToExpire,
 	}
-}
 
-func (u *User) Id() int64 {
-	return u.id
-}
+	validate := validator.New()
+	err := validate.Struct(u)
+	if err != nil {
+		return nil, err
+	}
 
-func (u *User) AppOrigin() string {
-	return u.appOrigin
-}
-
-func (u *User) Name() string {
-	return u.name
-}
-
-func (u *User) AccessLevel() int32 {
-	return u.accessLevel
-}
-
-func (u *User) HoursToExpire() int32 {
-	return u.hoursToExpire
+	return &u, nil
 }
