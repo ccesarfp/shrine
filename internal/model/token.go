@@ -1,6 +1,9 @@
 package model
 
 import (
+	"errors"
+	"github.com/ccesarfp/shrine/pkg/util"
+	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
 	"log"
 	"os"
@@ -15,16 +18,36 @@ type Token struct {
 	Token string `validate:"omitempty,jwt"`
 }
 
-func NewToken(token string) Token {
-	return Token{
+var pattern = "^\\d+-[A-Za-z]+$"
+
+func NewToken(token string) (*Token, error) {
+	t := Token{
 		Token: token,
 	}
+
+	validate := validator.New()
+	err := validate.Struct(t)
+	if err != nil {
+		return nil, err
+	}
+
+	return &t, nil
 }
 
-func NewTokenWithId(id string) Token {
-	return Token{
+func NewTokenWithId(id string) (*Token, error) {
+	isValid, err := util.ValidateUsingRegex(pattern, id)
+	if err != nil {
+		return nil, err
+	}
+	if isValid == false {
+		return nil, errors.New("id not valid")
+	}
+
+	t := Token{
 		Id: id,
 	}
+
+	return &t, nil
 }
 
 func (t *Token) SetToken(token string) {

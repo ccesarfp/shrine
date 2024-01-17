@@ -78,7 +78,10 @@ func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*pr
 //
 // **
 func (s *Server) GetClaimsByKey(ctx context.Context, in *protobuf.TokenRequestWithId) (*protobuf.UserResponseWithToken, error) {
-	t := model.NewTokenWithId(in.Id)
+	t, err := model.NewTokenWithId(in.Id)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 
 	// Creating Redis Client instance
 	client, err := config.NewRedisClient()
@@ -130,7 +133,10 @@ func (s *Server) GetClaimsByKey(ctx context.Context, in *protobuf.TokenRequestWi
 //
 // **
 func (s *Server) GetClaimsByToken(ctx context.Context, in *protobuf.TokenRequest) (*protobuf.UserResponse, error) {
-	t := model.NewToken(in.Token)
+	t, err := model.NewToken(in.Token)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 
 	// Getting claims
 	token, claims, err := t.GetClaims(jwtSecretKey)
@@ -165,8 +171,10 @@ func (s *Server) GetClaimsByToken(ctx context.Context, in *protobuf.TokenRequest
 //
 // **
 func (s *Server) CheckTokenValidity(ctx context.Context, in *protobuf.TokenRequest) (*protobuf.TokenStatus, error) {
-
-	t := model.NewToken(in.Token)
+	t, err := model.NewToken(in.Token)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 
 	isValid, err := t.CheckValidity(jwtSecretKey)
 	if err != nil {
