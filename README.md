@@ -55,7 +55,7 @@ Now, Docker will fetch the Redis image and start the service.
 Once the process is complete, it's time to start the Shrine by running the following command:
 
 ```bash
-  go run web/shrine/main.go
+  go run cmd/shrine/main.go
 ```
 For testing, you can use applications like **Postman**. Just import the **Token.proto** file.
 
