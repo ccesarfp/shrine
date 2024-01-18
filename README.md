@@ -1,7 +1,18 @@
+<p align="center">
+  <img alt="Shrine Logo" src="https://drive.google.com/uc?export=view&id=1p9ZayHmx9gldSom-VAnBPO9sHcGlSHIh" width="650px" />
+  <h1 align="center">Shrine</h1>
+</p>
 
-# Shrine
+## What is It?
+Shrine is an authentication microservice that enables the rapid and secure creation of JWT tokens. 
 
-The Shrine was created as a study proposal on Golang, gRPC, and Redis Database.
+It utilizes gRPC communication and stores data in Redis.
+
+## Example Architecture
+
+<p align="center">
+  <img alt="Shrine Logo" src="https://drive.google.com/uc?export=view&id=1T3Os2tbp8wTVxQXaiEbB9y-7OSKOxOlu" width="800px" />
+</p>
 
 ## How it Works?
 
@@ -50,97 +61,115 @@ For testing, you can use applications like **Postman**. Just import the **Token.
 
 ## gRPC Documentation
 
-### Token.proto
-
-#### Token  Service
-| Method | Request | Response | Description |
-| --- | --- | --- | --- |
-| CreateToken  | UserRequest | TokenResponse | Create token using user data and return JWT |
-| GetClaimsByToken | TokenRequest | UserResponse | Receive token and return all user data |
-| GetClaimsByKey  | TokenRequestWithId | UserResponseWithToken | Receive token ID and return all user data |
-| CheckTokenValidity  | TokenRequest | TokenStatus | Receive token and return if is valid |
-
 <details>
-<summary>UserRequest</summary>
+<summary><h2>Token.proto</h2></summary>
+
+  #### Token  Service
+  | Method | Request | Response | Description |
+  | --- | --- | --- | --- |
+  | CreateToken  | UserRequest | TokenResponse | Create token using user data and return JWT |
+  | GetClaimsByToken | TokenRequest | UserResponse | Receive token and return all user data |
+  | GetClaimsByKey  | TokenRequestWithId | UserResponseWithToken | Receive token ID and return all user data |
+  | CheckTokenValidity  | TokenRequest | TokenStatus | Receive token and return if is valid |
   
-Request message for CreateToken
-| Field | Type | Description |
-| --- | --- | --- |
-| id | int64 | User id |
-| name | string | User name |
-| appOrigin  | string | Application that sent the request |
-| accessLevel  | int32 | User access level |
-| hoursToExpire  | int32 | Token duration |
-
-</details>
-
-
-<details>
-<summary>TokenRequest</summary>
+  <details>
+  <summary>UserRequest</summary>
+    
+  Request message for CreateToken
+  | Field | Type | Description |
+  | --- | --- | --- |
+  | id | int64 | User id |
+  | name | string | User name |
+  | appOrigin  | string | Application that sent the request |
+  | accessLevel  | int32 | User access level |
+  | hoursToExpire  | int32 | Token duration |
   
-Request message for GetClaimsByToken and CheckTokenValidity
-| Field | Type | Description |
-| --- | --- | --- |
-| token | string | User token |
-
-</details>
-
-
-<details>
-<summary>TokenRequestWithId</summary>
-
-Request message for GetClaimsByKey
-| Field | Type | Description |
-| --- | --- | --- |
-| id | string | Token id |
-
-</details>
-
-
-<details>
-<summary>TokenResponse</summary>
-
-Response message for CreateToken
-| Field | Type | Description |
-| --- | --- | --- |
-| token | string | User token |
-
-</details>
-
-
-<details>
-<summary>UserResponse</summary>
-
-Response message for GetClaimsByToken
-| Field | Type | Description |
-| --- | --- | --- |
-| id | int64 | User id |
-| name | string | User name |
-| appOrigin   | int32 | Application that sent the request |
-| accessLevel | int32 | User access level |
-
-</details>
-
-<details>
-<summary>UserResponseWithToken</summary>
+  </details>
   
-Response message for GetClaimsByKey
-| Field | Type | Description |
-| --- | --- | --- |
-| id | int64 | User id |
-| name | string | User name |
-| accessLevel  | int32 | User access level |
-| token | string | User token |
+  
+  <details>
+  <summary>TokenRequest</summary>
+    
+  Request message for GetClaimsByToken and CheckTokenValidity
+  | Field | Type | Description |
+  | --- | --- | --- |
+  | token | string | User token |
+  
+  </details>
+  
+  
+  <details>
+  <summary>TokenRequestWithId</summary>
+  
+  Request message for GetClaimsByKey
+  | Field | Type | Description |
+  | --- | --- | --- |
+  | id | string | Token id |
+  
+  </details>
+  
+  
+  <details>
+  <summary>TokenResponse</summary>
+  
+  Response message for CreateToken
+  | Field | Type | Description |
+  | --- | --- | --- |
+  | token | string | User token |
+  
+  </details>
+  
+  
+  <details>
+  <summary>UserResponse</summary>
+  
+  Response message for GetClaimsByToken
+  | Field | Type | Description |
+  | --- | --- | --- |
+  | id | int64 | User id |
+  | name | string | User name |
+  | appOrigin   | int32 | Application that sent the request |
+  | accessLevel | int32 | User access level |
+  
+  </details>
+  
+  <details>
+  <summary>UserResponseWithToken</summary>
+    
+  Response message for GetClaimsByKey
+  | Field | Type | Description |
+  | --- | --- | --- |
+  | id | int64 | User id |
+  | name | string | User name |
+  | accessLevel  | int32 | User access level |
+  | token | string | User token |
+  
+  </details>
+  
+  
+  <details>
+  <summary>TokenStatus</summary>
+  
+  Response message for CheckTokenValidity
+  | Field | Type | Description |
+  | --- | --- | --- |
+  | status | bool | Token status |
+  
+  </details>
 
 </details>
 
+## Why Does the Shrine Exist?
 
-<details>
-<summary>TokenStatus</summary>
+The Shrine was designed with the aim of creating a service that could be used by multiple applications, avoiding the need to develop a token management system for each of them. 
 
-Response message for CheckTokenValidity
-| Field | Type | Description |
-| --- | --- | --- |
-| status | bool | Token status |
+The choice to use the Go language stemmed from the desire to enhance my knowledge in it, coupled with its high execution speed. 
 
-</details>
+Additionally, the decision was made to implement gRPC and utilize the Redis database for the temporary persistence of these tokens.
+
+## What Did I Learn?
+
+With this project, I could realize how enjoyable it is to program using Golang, both in creating gRPC servers and integrating with Redis.
+
+Beyond the technical aspects of development, I was able to enhance my architectural vision. Throughout the entire development process, I consistently thought about how the system could integrate with other applications and what role it should play within a complete architecture.
+
