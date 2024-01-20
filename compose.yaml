@@ -1,6 +1,13 @@
 version: "3.8"
 
 services:
+  app:
+    build: .
+    container_name: shrine
+    ports:
+      - "3000:3000"
+    networks:
+      - shrine-net
   shrine-redis:
     image: redis/redis-stack-server
     container_name: shrine-redis

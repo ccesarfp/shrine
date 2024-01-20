@@ -5,18 +5,20 @@ import (
 	"github.com/ccesarfp/shrine/internal/service"
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 	"time"
 )
 
-const address string = "localhost:8080"
+const address string = "0.0.0.0:3000"
 const network string = "tcp"
 
 var start = time.Now()
 
 func main() {
 	log.Println("Getting environment variables")
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -32,6 +34,10 @@ func main() {
 
 	s := grpc.NewServer()
 	protobuf.RegisterTokenServer(s, &service.Server{})
+
+	// Register reflection service on gRPC server.
+	log.Println("Starting reflection service")
+	reflection.Register(s)
 
 	log.Println("Application initialization took", time.Since(start))
 
