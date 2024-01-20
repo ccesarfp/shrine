@@ -44,19 +44,16 @@ By default, Redis will be started on port **6379** and will be created with the 
 
 Rename the file **.env.example** to **.env**.
 
-Access the .env file and include the **password (REDIS_PASSWORD)** and a **secret phrase (JWT_SECRET_KEY)** without spaces; this phrase will be used for JWT creation.
+Access the **.env** file and include the **secret phrase (JWT_SECRET_KEY)** without spaces, this phrase will be used for JWT creation.
 
 Inside the project folder, execute the following command:
 ```bash
   docker-compose up -d
 ```
-Now, Docker will fetch the Redis image and start the service.
+Now Docker will download the Redis image and build our Shrine image. After finishing the service will start.
 
-Once the process is complete, it's time to start the Shrine by running the following command:
+And that's it, the Shrine is up and running and ready to use.
 
-```bash
-  go run cmd/shrine/main.go
-```
 For testing, you can use applications like **Postman**. Just import the **Token.proto** file.
 
 ## gRPC Documentation
