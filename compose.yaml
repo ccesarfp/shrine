@@ -8,10 +8,12 @@ services:
       - "3000:3000"
     networks:
       - shrine-net
+    depends_on:
+      - shrine-redis
   shrine-redis:
-    image: redis/redis-stack-server
+    image: redis:7.2.4-alpine3.19
     container_name: shrine-redis
-    entrypoint: redis-stack-server --requirepass 123  --appendonly yes
+    entrypoint: redis-server --requirepass 123  --appendonly yes
     ports:
       - "6379:6379"
     networks:

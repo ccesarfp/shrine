@@ -48,7 +48,7 @@ Access the **.env** file and include the **secret phrase (JWT_SECRET_KEY)** with
 
 Inside the project folder, execute the following command:
 ```bash
-  docker-compose up -d
+  docker-compose up
 ```
 Now Docker will download the Redis image and build our Shrine image. After finishing the service will start.
 
