@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestNewToken(t *testing.T) {
+func TestNewJwt(t *testing.T) {
 	type args struct {
 		token string
 	}
@@ -16,10 +16,24 @@ func TestNewToken(t *testing.T) {
 		want    *Token
 		wantErr bool
 	}{
-		{name: "creating_a_token_with_a_valid_jwt", args: args{token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NMZXZlbCI6MSwiYXBwT3JpZ2luIjoiUG9zdG1hbiIsImV4cCI6MTcwNTQzNjc2MSwiaWQiOjEsIm5hbWUiOiJDYWlvIn0.GP0aS6gBGV3Wnb3s5pp5_1-7dvjDa-cEyL_YOYUPAGA"}, want: &Token{
-			Token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NMZXZlbCI6MSwiYXBwT3JpZ2luIjoiUG9zdG1hbiIsImV4cCI6MTcwNTQzNjc2MSwiaWQiOjEsIm5hbWUiOiJDYWlvIn0.GP0aS6gBGV3Wnb3s5pp5_1-7dvjDa-cEyL_YOYUPAGA",
-		}, wantErr: false},
-		{name: "creating_a_token_with_a_invalid_jwt", args: args{token: "aaaa"}, want: nil, wantErr: true},
+		{
+			name: "creating_a_token_with_a_valid_jwt",
+			args: args{
+				token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NMZXZlbCI6MSwiYXBwT3JpZ2luIjoiUG9zdG1hbiIsImV4cCI6MTcwNTQzNjc2MSwiaWQiOjEsIm5hbWUiOiJDYWlvIn0.GP0aS6gBGV3Wnb3s5pp5_1-7dvjDa-cEyL_YOYUPAGA",
+			},
+			want: &Token{
+				Token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NMZXZlbCI6MSwiYXBwT3JpZ2luIjoiUG9zdG1hbiIsImV4cCI6MTcwNTQzNjc2MSwiaWQiOjEsIm5hbWUiOiJDYWlvIn0.GP0aS6gBGV3Wnb3s5pp5_1-7dvjDa-cEyL_YOYUPAGA",
+			},
+			wantErr: false,
+		},
+		{
+			name: "creating_a_token_with_a_invalid_jwt",
+			args: args{
+				token: "aaaa",
+			},
+			want:    nil,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -35,7 +49,7 @@ func TestNewToken(t *testing.T) {
 	}
 }
 
-func TestNewTokenWithId1(t *testing.T) {
+func TestNewJwtWithId1(t *testing.T) {
 	type args struct {
 		id string
 	}
@@ -45,10 +59,40 @@ func TestNewTokenWithId1(t *testing.T) {
 		want    *Token
 		wantErr bool
 	}{
-		{name: "creating_token_using_valid_id", args: args{id: "1-Shrine"}, want: &Token{Id: "1-Shrine"}, wantErr: false},
-		{name: "creating_token_using_number_only", args: args{id: "1"}, want: nil, wantErr: true},
-		{name: "creating_token_using_name_only", args: args{id: "Shrine"}, want: nil, wantErr: true},
-		{name: "creating_token_using_dash_only", args: args{id: "-"}, want: nil, wantErr: true},
+		{
+			name: "creating_token_using_valid_id",
+			args: args{
+				id: "1-Shrine",
+			},
+			want: &Token{
+				Id: "1-Shrine",
+			},
+			wantErr: false,
+		},
+		{
+			name: "creating_token_using_number_only",
+			args: args{
+				id: "1",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "creating_token_using_name_only",
+			args: args{
+				id: "Shrine",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "creating_token_using_dash_only",
+			args: args{
+				id: "-",
+			},
+			want:    nil,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -64,7 +108,7 @@ func TestNewTokenWithId1(t *testing.T) {
 	}
 }
 
-func TestToken_CheckValidity(t1 *testing.T) {
+func TestJwtValidity(t1 *testing.T) {
 	t1.Setenv("jwtSecretKey", "ItsASecret")
 	type fields struct {
 		Id    string
@@ -80,10 +124,18 @@ func TestToken_CheckValidity(t1 *testing.T) {
 		want    bool
 		wantErr bool
 	}{
-		{name: "checking_valid_token", fields: fields{
-			Id:    "1-Postman",
-			Token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NMZXZlbCI6MSwiYXBwT3JpZ2luIjoiUG9zdG1hbiIsImV4cCI6MTcwNTQ2NzQ2MSwiaWQiOjEsIm5hbWUiOiJDYWlvIn0.v7HtG4G-V647nmZ7hJzxPXAKSnYx1-7k4YIZj_0gT3M",
-		}, args: args{jwtSecretKey: "ItsASecret"}, want: false, wantErr: true},
+		{
+			name: "checking_valid_token",
+			fields: fields{
+				Id:    "1-Postman",
+				Token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NMZXZlbCI6MSwiYXBwT3JpZ2luIjoiUG9zdG1hbiIsImV4cCI6MTcwNTQ2NzQ2MSwiaWQiOjEsIm5hbWUiOiJDYWlvIn0.v7HtG4G-V647nmZ7hJzxPXAKSnYx1-7k4YIZj_0gT3M",
+			},
+			args: args{
+				jwtSecretKey: "ItsASecret",
+			},
+			want:    false,
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t1.Run(tt.name, func(t1 *testing.T) {
@@ -103,7 +155,7 @@ func TestToken_CheckValidity(t1 *testing.T) {
 	}
 }
 
-func TestToken_CreateToken(t1 *testing.T) {
+func TestJwtCreateToken(t1 *testing.T) {
 	type fields struct {
 		Id    string
 		Token string
