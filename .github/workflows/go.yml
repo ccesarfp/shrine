@@ -1,6 +1,10 @@
-name: Go
+name: test
 
-on: [push]
+on: 
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
 
@@ -9,10 +13,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Set up Go
+    - name: Setup Go
       uses: actions/setup-go@v4
       with:
         go-version: '1.22'
 
-    - name: Test
+    - name: Run Go Unit Tests
       run: go test -v ./...
