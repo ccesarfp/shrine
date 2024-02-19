@@ -1,4 +1,4 @@
-FROM golang:1.21.6-alpine3.19 as base
+FROM golang:1.22-alpine3.19 as base
 RUN apk update
 WORKDIR /src/shrine
 COPY go.mod go.sum ./
