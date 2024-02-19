@@ -1,6 +1,6 @@
 module github.com/ccesarfp/shrine
 
-go 1.21.3
+go 1.22
 
 require (
 	github.com/go-playground/validator/v10 v10.17.0
