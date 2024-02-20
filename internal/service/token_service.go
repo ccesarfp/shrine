@@ -45,9 +45,9 @@ func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*pr
 		"exp":         exp.Unix(),
 	}
 
-	// Creating Token
-	t := model.Token{}
-	token, err := t.CreateToken(claims, jwtSecretKey)
+	// Creating Jwt
+	t := model.Jwt{}
+	token, err := t.CreateJwt(claims, jwtSecretKey)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -69,7 +69,7 @@ func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*pr
 	}, nil
 }
 
-// GetClaimsByKey Retrieve data from JWT using Token ID
+// GetClaimsByKey Retrieve data from JWT using Jwt ID
 // params:
 //   - TokenRequestWithId - token id
 //
@@ -78,7 +78,7 @@ func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*pr
 //
 // **
 func (s *Server) GetClaimsByKey(ctx context.Context, in *protobuf.TokenRequestWithId) (*protobuf.UserResponseWithToken, error) {
-	t, err := model.NewTokenWithId(in.Id)
+	t, err := model.NewJwtWithId(in.Id)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -98,7 +98,7 @@ func (s *Server) GetClaimsByKey(ctx context.Context, in *protobuf.TokenRequestWi
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	t.SetToken(tokenString)
+	t.SetJwt(tokenString)
 
 	// Getting claims
 	token, claims, err := t.GetClaims(jwtSecretKey)
@@ -133,7 +133,7 @@ func (s *Server) GetClaimsByKey(ctx context.Context, in *protobuf.TokenRequestWi
 //
 // **
 func (s *Server) GetClaimsByToken(ctx context.Context, in *protobuf.TokenRequest) (*protobuf.UserResponse, error) {
-	t, err := model.NewToken(in.Token)
+	t, err := model.NewJwt(in.Token)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -171,7 +171,7 @@ func (s *Server) GetClaimsByToken(ctx context.Context, in *protobuf.TokenRequest
 //
 // **
 func (s *Server) CheckTokenValidity(ctx context.Context, in *protobuf.TokenRequest) (*protobuf.TokenStatus, error) {
-	t, err := model.NewToken(in.Token)
+	t, err := model.NewJwt(in.Token)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}

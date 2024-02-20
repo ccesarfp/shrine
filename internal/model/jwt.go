@@ -9,19 +9,19 @@ import (
 	"os"
 )
 
-// Token Model
+// Jwt Model
 // Id - token Id
 // token - user token
 // **
-type Token struct {
+type Jwt struct {
 	Id    string
 	Token string `validate:"omitempty,jwt"`
 }
 
 var pattern = "^\\d+-[A-Za-z]+$"
 
-func NewToken(token string) (*Token, error) {
-	t := Token{
+func NewJwt(token string) (*Jwt, error) {
+	t := Jwt{
 		Token: token,
 	}
 
@@ -34,7 +34,7 @@ func NewToken(token string) (*Token, error) {
 	return &t, nil
 }
 
-func NewTokenWithId(id string) (*Token, error) {
+func NewJwtWithId(id string) (*Jwt, error) {
 	isValid, err := util.ValidateUsingRegex(pattern, id)
 	if err != nil {
 		return nil, err
@@ -43,18 +43,18 @@ func NewTokenWithId(id string) (*Token, error) {
 		return nil, errors.New("id not valid")
 	}
 
-	t := Token{
+	t := Jwt{
 		Id: id,
 	}
 
 	return &t, nil
 }
 
-func (t *Token) SetToken(token string) {
+func (t *Jwt) SetJwt(token string) {
 	t.Token = token
 }
 
-// CreateToken create a token
+// CreateJwt create a token
 // params:
 //   - claims jwt.MapClaims - claims
 //   - jwtSecretKey string - secret that will be used to create the token
@@ -64,7 +64,7 @@ func (t *Token) SetToken(token string) {
 //   - err error - error message
 //
 // **
-func (t *Token) CreateToken(claims jwt.MapClaims, jwtSecretKey string) (string, error) {
+func (t *Jwt) CreateJwt(claims jwt.MapClaims, jwtSecretKey string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString([]byte(os.Getenv(jwtSecretKey)))
@@ -86,7 +86,7 @@ func (t *Token) CreateToken(claims jwt.MapClaims, jwtSecretKey string) (string, 
 //   - err error - error message
 //
 // **
-func (t *Token) GetClaims(jwtSecretKey string) (*jwt.Token, jwt.MapClaims, error) {
+func (t *Jwt) GetClaims(jwtSecretKey string) (*jwt.Token, jwt.MapClaims, error) {
 
 	claims := jwt.MapClaims{}
 	token, err := jwt.ParseWithClaims(t.Token, claims, func(token *jwt.Token) (interface{}, error) {
@@ -101,7 +101,7 @@ func (t *Token) GetClaims(jwtSecretKey string) (*jwt.Token, jwt.MapClaims, error
 
 }
 
-func (t *Token) CheckValidity(jwtSecretKey string) (bool, error) {
+func (t *Jwt) CheckValidity(jwtSecretKey string) (bool, error) {
 
 	isValid, _, err := t.GetClaims(jwtSecretKey)
 	if err != nil {

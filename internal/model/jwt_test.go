@@ -13,7 +13,7 @@ func TestNewJwt(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *Token
+		want    *Jwt
 		wantErr bool
 	}{
 		{
@@ -21,7 +21,7 @@ func TestNewJwt(t *testing.T) {
 			args: args{
 				token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NMZXZlbCI6MSwiYXBwT3JpZ2luIjoiUG9zdG1hbiIsImV4cCI6MTcwNTQzNjc2MSwiaWQiOjEsIm5hbWUiOiJDYWlvIn0.GP0aS6gBGV3Wnb3s5pp5_1-7dvjDa-cEyL_YOYUPAGA",
 			},
-			want: &Token{
+			want: &Jwt{
 				Token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NMZXZlbCI6MSwiYXBwT3JpZ2luIjoiUG9zdG1hbiIsImV4cCI6MTcwNTQzNjc2MSwiaWQiOjEsIm5hbWUiOiJDYWlvIn0.GP0aS6gBGV3Wnb3s5pp5_1-7dvjDa-cEyL_YOYUPAGA",
 			},
 			wantErr: false,
@@ -37,13 +37,13 @@ func TestNewJwt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewToken(tt.args.token)
+			got, err := NewJwt(tt.args.token)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("NewToken() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("NewJwt() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewToken() got = %v, want %v", got, tt.want)
+				t.Errorf("NewJwt() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -56,7 +56,7 @@ func TestNewJwtWithId1(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *Token
+		want    *Jwt
 		wantErr bool
 	}{
 		{
@@ -64,7 +64,7 @@ func TestNewJwtWithId1(t *testing.T) {
 			args: args{
 				id: "1-Shrine",
 			},
-			want: &Token{
+			want: &Jwt{
 				Id: "1-Shrine",
 			},
 			wantErr: false,
@@ -96,13 +96,13 @@ func TestNewJwtWithId1(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewTokenWithId(tt.args.id)
+			got, err := NewJwtWithId(tt.args.id)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("NewTokenWithId() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("NewJwtWithId() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewTokenWithId() got = %v, want %v", got, tt.want)
+				t.Errorf("NewJwtWithId() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -139,7 +139,7 @@ func TestJwtValidity(t1 *testing.T) {
 	}
 	for _, tt := range tests {
 		t1.Run(tt.name, func(t1 *testing.T) {
-			t := &Token{
+			t := &Jwt{
 				Id:    tt.fields.Id,
 				Token: tt.fields.Token,
 			}
@@ -186,17 +186,17 @@ func TestJwtCreateToken(t1 *testing.T) {
 	}
 	for _, tt := range tests {
 		t1.Run(tt.name, func(t1 *testing.T) {
-			t := &Token{
+			t := &Jwt{
 				Id:    tt.fields.Id,
 				Token: tt.fields.Token,
 			}
-			got, err := t.CreateToken(tt.args.claims, tt.args.jwtSecretKey)
+			got, err := t.CreateJwt(tt.args.claims, tt.args.jwtSecretKey)
 			if (err != nil) != tt.wantErr {
-				t1.Errorf("CreateToken() error = %v, wantErr %v", err, tt.wantErr)
+				t1.Errorf("CreateJwt() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t1.Errorf("CreateToken() got = %v, want %v", got, tt.want)
+				t1.Errorf("CreateJwt() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
