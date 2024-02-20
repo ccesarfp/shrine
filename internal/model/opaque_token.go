@@ -37,3 +37,7 @@ func NewOpaqueTokenWithJwt(token string, jwt string) (*OpaqueToken, error) {
 
 	return &t, nil
 }
+
+func (op *OpaqueToken) SetJwt(jwt string) {
+	op.Jwt = jwt
+}

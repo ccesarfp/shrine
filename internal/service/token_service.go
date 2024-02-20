@@ -6,15 +6,17 @@ import (
 	"github.com/ccesarfp/shrine/internal/errors"
 	"github.com/ccesarfp/shrine/internal/model"
 	"github.com/ccesarfp/shrine/internal/protobuf"
-	"github.com/ccesarfp/shrine/pkg/util"
+	"github.com/gofrs/uuid/v5"
 	"github.com/golang-jwt/jwt/v5"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
+	"os"
 	"time"
 )
 
 var (
-	jwtSecretKey = "JWT_SECRET_KEY"
+	otSecretKey = "OT_SECRET_KEY"
 )
 
 type Server struct {
@@ -30,6 +32,23 @@ type Server struct {
 //
 // **
 func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*protobuf.TokenResponse, error) {
+	uuidValue, err := uuid.FromString(os.Getenv(otSecretKey))
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	// Getting actual datetime
+	currentTime := time.Now()
+
+	// Getting IP Address from Request
+	p, _ := peer.FromContext(ctx)
+	request := p.Addr.String()
+
+	opaqueToken, err := model.NewOpaqueToken(uuid.NewV5(uuidValue, request+currentTime.String()).String())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
 	u, err := model.NewUser(in.Id, in.Name, in.AppOrigin, in.AccessLevel, in.HoursToExpire)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -47,7 +66,7 @@ func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*pr
 
 	// Creating Jwt
 	t := model.Jwt{}
-	token, err := t.CreateJwt(claims, jwtSecretKey)
+	token, err := t.CreateJwt(claims, os.Getenv(otSecretKey))
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -59,13 +78,13 @@ func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*pr
 	}
 
 	// Writing token to db
-	err = client.Set(ctx, util.PrepareKey(u.Id, u.AppOrigin), token, exp.Sub(time.Now())).Err()
+	err = client.Set(ctx, opaqueToken.Token, token, exp.Sub(time.Now())).Err()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &protobuf.TokenResponse{
-		Token: token,
+		Token: opaqueToken.Token,
 	}, nil
 }
 
@@ -78,7 +97,7 @@ func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*pr
 //
 // **
 func (s *Server) GetClaimsByKey(ctx context.Context, in *protobuf.TokenRequestWithId) (*protobuf.UserResponseWithToken, error) {
-	t, err := model.NewJwtWithId(in.Id)
+	op, err := model.NewOpaqueToken(in.Id)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -90,7 +109,7 @@ func (s *Server) GetClaimsByKey(ctx context.Context, in *protobuf.TokenRequestWi
 	}
 
 	// Searching token in db
-	tokenString, err := client.Get(ctx, t.Id).Result()
+	jwtString, err := client.Get(ctx, op.Token).Result()
 	if err != nil {
 		// If the token does not exist in the db, returns Not Found
 		if err.Error() == "redis: nil" {
@@ -98,26 +117,12 @@ func (s *Server) GetClaimsByKey(ctx context.Context, in *protobuf.TokenRequestWi
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	t.SetJwt(tokenString)
-
-	// Getting claims
-	token, claims, err := t.GetClaims(jwtSecretKey)
-	if err != nil {
-		// If token is not valid, return Unauthenticated
-		if token.Valid == false {
-			expiredToken := errors.ExpiredToken{}
-			return nil, status.Error(codes.Unauthenticated, expiredToken.Error())
-		}
-		return nil, status.Error(codes.Internal, err.Error())
-	}
+	op.SetJwt(jwtString)
 
 	// If token is valid, return claims
-	if token.Valid {
+	if op.Jwt != "" {
 		return &protobuf.UserResponseWithToken{
-			Id:          int64(claims["id"].(float64)),
-			Name:        claims["name"].(string),
-			AccessLevel: int32(claims["accessLevel"].(float64)),
-			Token:       tokenString,
+			Token: op.Jwt,
 		}, nil
 	}
 
@@ -139,7 +144,7 @@ func (s *Server) GetClaimsByToken(ctx context.Context, in *protobuf.TokenRequest
 	}
 
 	// Getting claims
-	token, claims, err := t.GetClaims(jwtSecretKey)
+	token, claims, err := t.GetClaims(otSecretKey)
 	if err != nil {
 		// If token is not valid, return Unauthenticated
 		if token.Valid == false {
@@ -176,7 +181,7 @@ func (s *Server) CheckTokenValidity(ctx context.Context, in *protobuf.TokenReque
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	isValid, err := t.CheckValidity(jwtSecretKey)
+	isValid, err := t.CheckValidity(otSecretKey)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}

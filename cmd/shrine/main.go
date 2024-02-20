@@ -28,7 +28,7 @@ func main() {
 	log.Println("Starting listener")
 	listener, err := net.Listen(network, address)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	s := grpc.NewServer()
