@@ -5,27 +5,25 @@ option go_package = "./internal/protobuf";
 
 // token service
 service Token {
-  // create token using user data and return jwt
-  rpc CreateToken (UserRequest) returns (TokenResponse) {}
-  // receive token and return all user data
-  rpc GetClaimsByToken (TokenRequest) returns (UserResponse) {}
-  // receive token ID and return all user data
-  rpc GetClaimsByKey (TokenRequestWithId) returns (UserResponseWithToken) {}
-  // receive token and return if is valid
+  // create token using user ip address and return opaque token
+  rpc CreateToken (UserRequest) returns (UserResponse) {}
+  // receive opaque token and update linked jwt
+  rpc UpdateToken(UserUpdateRequest) returns (UserResponse) {}
+  // receive opaque token and return user jwt
+  rpc GetJwt(TokenRequest) returns (TokenResponse) {}
+  // receive opaque token and return if is valid
   rpc CheckTokenValidity (TokenRequest) returns (TokenStatus) {}
 }
 
 // Requests
 message UserRequest {
-  int64 id = 1;
-  string name = 2;
-  string appOrigin = 3;
-  int32 accessLevel = 4;
-  int32 hoursToExpire = 5;
+  int32 hoursToExpire = 1;
 }
 
-message TokenRequestWithId {
-  string id = 1;
+message UserUpdateRequest {
+  string token = 1;
+  string jwt = 2;
+  int32 hoursToExpire = 3;
 }
 
 message TokenRequest {
@@ -33,22 +31,12 @@ message TokenRequest {
 }
 
 // Responses
-message TokenResponse {
+message UserResponse {
   string token = 1;
 }
 
-message UserResponseWithToken {
-  int64 id = 1;
-  string name = 2;
-  int32 accessLevel = 3;
-  string token = 4;
-}
-
-message UserResponse {
-  int64 id = 1;
-  string name = 2;
-  string appOrigin = 3;
-  int32 accessLevel = 4;
+message TokenResponse {
+  string jwt = 1;
 }
 
 message TokenStatus {

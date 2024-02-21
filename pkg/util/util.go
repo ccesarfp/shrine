@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 )
 
 // PrepareKey Prepare key
@@ -36,4 +37,8 @@ func ValidateUsingRegex(pattern string, value string) (bool, error) {
 	isValid := regex.MatchString(value)
 
 	return isValid, nil
+}
+
+func CreateUnixExpirationTime(hoursToExpire int32) (time.Time, error) {
+	return time.Now().Add(time.Hour * time.Duration(hoursToExpire)), nil
 }

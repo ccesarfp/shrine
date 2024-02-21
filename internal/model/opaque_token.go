@@ -5,7 +5,7 @@ import (
 )
 
 type OpaqueToken struct {
-	Token string `validate:"omitempty,uuid5"`
+	Token string `validate:"uuid5"`
 	Jwt   string `validate:"omitempty,jwt"`
 }
 

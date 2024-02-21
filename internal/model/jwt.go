@@ -64,16 +64,16 @@ func (t *Jwt) SetJwt(token string) {
 //   - err error - error message
 //
 // **
-func (t *Jwt) CreateJwt(claims jwt.MapClaims, secret string) (string, error) {
+func (t *Jwt) CreateJwt(claims jwt.MapClaims, secret string) (*string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
 		log.Println("Error trying to generate JWT token, err=", err.Error())
-		return "nil", err
+		return nil, err
 	}
 
-	return tokenString, nil
+	return &tokenString, nil
 }
 
 // GetClaims accesses a token and returns its claims and validity

@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 	"github.com/ccesarfp/shrine/internal/config"
-	"github.com/ccesarfp/shrine/internal/errors"
 	"github.com/ccesarfp/shrine/internal/model"
 	"github.com/ccesarfp/shrine/internal/protobuf"
+	"github.com/ccesarfp/shrine/pkg/util"
 	"github.com/gofrs/uuid/v5"
 	"github.com/golang-jwt/jwt/v5"
 	"google.golang.org/grpc/codes"
@@ -23,16 +23,20 @@ type Server struct {
 	protobuf.UnimplementedTokenServer
 }
 
-// CreateToken Create user token
+// CreateToken Create user opaque token
 // params:
 //   - UserRequest - user data
 //
 // result:
-//   - TokenResponse - token created
+//   - UserResponse - opaque token created
 //
 // **
-func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*protobuf.TokenResponse, error) {
-	uuidValue, err := uuid.FromString(os.Getenv(otSecretKey))
+func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*protobuf.UserResponse, error) {
+	// Getting Environment Secret
+	secret := os.Getenv(otSecretKey)
+
+	// Creating UUID
+	uuidValue, err := uuid.FromString(secret)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -42,31 +46,31 @@ func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*pr
 
 	// Getting IP Address from Request
 	p, _ := peer.FromContext(ctx)
-	request := p.Addr.String()
+	ipAddress := p.Addr.String()
 
-	opaqueToken, err := model.NewOpaqueToken(uuid.NewV5(uuidValue, request+currentTime.String()).String())
+	// Creating User
+	u, err := model.NewUser(ipAddress, in.HoursToExpire)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	u, err := model.NewUser(in.Id, in.Name, in.AppOrigin, in.AccessLevel, in.HoursToExpire)
+	// Creating Opaque Token
+	opaqueToken, err := model.NewOpaqueToken(uuid.NewV5(uuidValue, u.IpAddress+currentTime.String()).String())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	exp := time.Now().Add(time.Hour * time.Duration(u.HoursToExpire))
-
+	// Creating Claims
+	exp, err := util.CreateUnixExpirationTime(u.HoursToExpire)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
 	claims := jwt.MapClaims{
-		"id":          u.Id,
-		"name":        u.Name,
-		"appOrigin":   u.AppOrigin,
-		"accessLevel": u.AccessLevel,
-		"exp":         exp.Unix(),
+		"ipAddress": u.IpAddress,
+		"exp":       exp.Unix(),
 	}
-
-	// Creating Jwt
 	t := model.Jwt{}
-	token, err := t.CreateJwt(claims, os.Getenv(otSecretKey))
+	jwtString, err := t.CreateJwt(claims, secret)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -78,26 +82,66 @@ func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*pr
 	}
 
 	// Writing token to db
-	err = client.Set(ctx, opaqueToken.Token, token, exp.Sub(time.Now())).Err()
+	err = client.Set(ctx, opaqueToken.Token, jwtString, exp.Sub(time.Now())).Err()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &protobuf.TokenResponse{
+	return &protobuf.UserResponse{
 		Token: opaqueToken.Token,
 	}, nil
 }
 
-// GetClaimsByKey Retrieve data from JWT using Jwt ID
+// UpdateToken Update user jwt
 // params:
-//   - TokenRequestWithId - token id
+//   - UserUpdateRequest - user opaque token and jwt
 //
 // result:
-//   - UserResponseWithToken - user data and token
+//   - UserResponse - user opaque token
 //
 // **
-func (s *Server) GetClaimsByKey(ctx context.Context, in *protobuf.TokenRequestWithId) (*protobuf.UserResponseWithToken, error) {
-	op, err := model.NewOpaqueToken(in.Id)
+func (s *Server) UpdateToken(ctx context.Context, in *protobuf.UserUpdateRequest) (*protobuf.UserResponse, error) {
+	// Creating Opaque Token
+	op, err := model.NewOpaqueTokenWithJwt(in.Token, in.Jwt)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	// Creating Redis Client instance
+	client, err := config.NewRedisClient()
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	// Preparing token validity
+	exp, err := util.CreateUnixExpirationTime(in.HoursToExpire)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	// Updating Jwt
+	err = client.Set(ctx, op.Token, op.Jwt, exp.Sub(time.Now())).Err()
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	// Returning Token
+	return &protobuf.UserResponse{
+		Token: op.Token,
+	}, nil
+}
+
+// GetJwt Returns JWT using Opaque Token
+// params:
+//   - TokenRequest - opaque token
+//
+// result:
+//   - TokenResponse - user jwt
+//
+// **
+func (s *Server) GetJwt(ctx context.Context, in *protobuf.TokenRequest) (*protobuf.TokenResponse, error) {
+	// Creating Opaque Token
+	ot, err := model.NewOpaqueToken(in.Token)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -109,7 +153,7 @@ func (s *Server) GetClaimsByKey(ctx context.Context, in *protobuf.TokenRequestWi
 	}
 
 	// Searching token in db
-	jwtString, err := client.Get(ctx, op.Token).Result()
+	jwtString, err := client.Get(ctx, ot.Token).Result()
 	if err != nil {
 		// If the token does not exist in the db, returns Not Found
 		if err.Error() == "redis: nil" {
@@ -117,57 +161,19 @@ func (s *Server) GetClaimsByKey(ctx context.Context, in *protobuf.TokenRequestWi
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	op.SetJwt(jwtString)
+	ot.SetJwt(jwtString)
 
 	// If token is valid, return claims
-	if op.Jwt != "" {
-		return &protobuf.UserResponseWithToken{
-			Token: op.Jwt,
+	if ot.Jwt != "" {
+		return &protobuf.TokenResponse{
+			Jwt: ot.Jwt,
 		}, nil
 	}
 
 	return nil, status.Error(codes.Unknown, "Error")
 }
 
-// GetClaimsByToken Retrieve data from JWT
-// params:
-//   - TokenRequest - user token
-//
-// result:
-//   - UserResponse - user data
-//
-// **
-func (s *Server) GetClaimsByToken(ctx context.Context, in *protobuf.TokenRequest) (*protobuf.UserResponse, error) {
-	t, err := model.NewJwt(in.Token)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-
-	// Getting claims
-	token, claims, err := t.GetClaims(otSecretKey)
-	if err != nil {
-		// If token is not valid, return Unauthenticated
-		if token.Valid == false {
-			expiredToken := errors.ExpiredToken{}
-			return nil, status.Error(codes.Unauthenticated, expiredToken.Error())
-		}
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	// If token is valid, return claims
-	if token.Valid {
-		return &protobuf.UserResponse{
-			Id:          int64(claims["id"].(float64)),
-			Name:        claims["name"].(string),
-			AppOrigin:   claims["appOrigin"].(string),
-			AccessLevel: int32(claims["accessLevel"].(float64)),
-		}, nil
-	}
-
-	return nil, status.Error(codes.Unknown, "Error")
-}
-
-// CheckTokenValidity Verify token validity
+// CheckTokenValidity verify token validity
 // params:
 //   - TokenRequest - user token
 //
@@ -176,14 +182,25 @@ func (s *Server) GetClaimsByToken(ctx context.Context, in *protobuf.TokenRequest
 //
 // **
 func (s *Server) CheckTokenValidity(ctx context.Context, in *protobuf.TokenRequest) (*protobuf.TokenStatus, error) {
-	t, err := model.NewJwt(in.Token)
+	// Creating Opaque Token
+	ot, err := model.NewOpaqueToken(in.Token)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	isValid, err := t.CheckValidity(otSecretKey)
+	// Creating Redis Client instance
+	client, err := config.NewRedisClient()
 	if err != nil {
-		return nil, status.Error(codes.Unauthenticated, err.Error())
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	// Verifying token in db
+	statusToken := client.Exists(ctx, ot.Token)
+
+	// Preparing return status
+	isValid := false
+	if statusToken.Val() == 1 {
+		isValid = true
 	}
 
 	return &protobuf.TokenStatus{Status: isValid}, nil
