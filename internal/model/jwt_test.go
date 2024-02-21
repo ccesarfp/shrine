@@ -195,7 +195,7 @@ func TestJwtCreateToken(t1 *testing.T) {
 				t1.Errorf("CreateJwt() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
+			if *got != tt.want {
 				t1.Errorf("CreateJwt() got = %v, want %v", got, tt.want)
 			}
 		})

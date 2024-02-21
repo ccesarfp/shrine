@@ -7,10 +7,7 @@ import (
 
 func TestNewUser(t *testing.T) {
 	type args struct {
-		id            int64
-		name          string
-		appOrigin     string
-		accessLevel   int32
+		ipAddress     string
 		hoursToExpire int32
 	}
 	tests := []struct {
@@ -22,17 +19,11 @@ func TestNewUser(t *testing.T) {
 		{
 			name: "creating_user_with_all_args",
 			args: args{
-				id:            1,
-				name:          "Caio",
-				appOrigin:     "Test",
-				accessLevel:   1,
+				ipAddress:     "127.0.0.1",
 				hoursToExpire: 4,
 			},
 			want: &User{
-				Id:            1,
-				Name:          "Caio",
-				AppOrigin:     "Test",
-				AccessLevel:   1,
+				IpAddress:     "127.0.0.1",
 				HoursToExpire: 4,
 			},
 			wantErr: false,
@@ -46,7 +37,7 @@ func TestNewUser(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewUser(tt.args.id, tt.args.name, tt.args.appOrigin, tt.args.accessLevel, tt.args.hoursToExpire)
+			got, err := NewUser(tt.args.ipAddress, tt.args.hoursToExpire)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewUser() error = %v, wantErr %v", err, tt.wantErr)
 				return

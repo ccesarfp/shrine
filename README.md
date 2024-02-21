@@ -18,22 +18,27 @@ It utilizes gRPC communication and stores data in Redis.
 
 <details open>
 <summary>First case</summary>
-A system sends a user's data to the Shrine. When this data arrives, it undergoes validation. If the data is filled out, a JWT is created and stored in Redis. Subsequently, the JWT is sent back to the system that made the initial request.
+A user accesses for the first time (or is not authenticated), then their access data is sent to the main application, which redirects to the Shrine. The Shrine generates an opaque token and a JWT with the user's IP address data. Finally, the opaque token is returned to the user to be used as an access token.
 </details>
 
 <details>
 <summary>Second case</summary>
-The same system needs to retrieve data from within the JWT. Therefore, it sends a request to the Shrine, which retrieves the data and returns it to the requesting system if the token is still valid. If it's not valid, the Shrine returns an error indicating that the token has expired.
+After accessing for the first time, this user registers (or logs in) and their authentication data is sent to the main server. Once the main system confirms who the user is, it creates a JWT with all the data it will need for internal use and then directs this token to the Shrine, which updates the Opaque Token to store this new JWT.
 </details>
 
 <details>
 <summary>Third case</summary>
-If the system in question needs to check if the token still exists in Redis, it sends to the Shrine the user's ID and the name of the requesting system. Upon reaching the Shrine, these data are concatenated and searched in Redis. If not found, a "Content Not Found" error is returned. If found, the Shrine returns the token and related data.
+This user has just accessed their profile and made a change to their name, so their updated data is sent to the main application (and their Opaque Token accompanies it). Upon arriving at the main application, this Opaque Token is redirected to the Shrine, which finds its previously stored JWT and sends it back to the main application, allowing it to continue saving the new data.
 </details>
 
 <details>
 <summary>Fourth case</summary>
-The system only wants to verify the validity of the token. To do this, it sends the token to the Shrine, which checks its validity and returns "true" if it's valid or a validity error otherwise.
+After a few days, the user accessed the application again to make a new change to their profile, but now, due to the time without access, their token was revoked. To deal with this, the Shrine notifies the main application, after trying to find its old Opaque Token, that it will take the user back to the authentication screen.
+</details>
+
+<details>
+<summary>Fifth case</summary>
+While processing data, the main application was unsure whether that user should still be accessing the system or not. Therefore, it forwards this Opaque Token to the Shrine, which checks its validity and notifies the main application about its current status.
 </details>
 
 ## How to Install?
@@ -62,12 +67,12 @@ For testing, you can use applications like **Postman**. Just import the **Token.
 <summary><h2>Token.proto</h2></summary>
 
   #### Token  Service
-  | Method | Request | Response | Description |
-  | --- | --- | --- | --- |
-  | CreateToken  | UserRequest | TokenResponse | Create token using user data and return JWT |
-  | GetClaimsByToken | TokenRequest | UserResponse | Receive token and return all user data |
-  | GetClaimsByKey  | TokenRequestWithId | UserResponseWithToken | Receive token ID and return all user data |
-  | CheckTokenValidity  | TokenRequest | TokenStatus | Receive token and return if is valid |
+  | Method | Request | Response | Description                                 |
+  | --- | --- | --- |---|
+  | CreateToken  | UserRequest | UserResponse | Create token using user data and return JWT |
+  | UpdateToken | UserUpdateRequest | UserResponse | Receive opaque token and update linked jwt  |
+  | GetJwt  | TokenRequest | TokenResponse | Receive opaque token and return user jwt    |
+  | CheckTokenValidity  | TokenRequest | TokenStatus | Receive token and return if is valid        |
   
   <details>
   <summary>UserRequest</summary>
@@ -75,74 +80,53 @@ For testing, you can use applications like **Postman**. Just import the **Token.
   Request message for CreateToken
   | Field | Type | Description |
   | --- | --- | --- |
-  | id | int64 | User id |
-  | name | string | User name |
-  | appOrigin  | string | Application that sent the request |
-  | accessLevel  | int32 | User access level |
   | hoursToExpire  | int32 | Token duration |
   
   </details>
   
   
   <details>
-  <summary>TokenRequest</summary>
+  <summary>UserUpdateRequest</summary>
     
-  Request message for GetClaimsByToken and CheckTokenValidity
+  Request message for UpdateToken
   | Field | Type | Description |
   | --- | --- | --- |
-  | token | string | User token |
+  | token | string | User opaque token |
+  | jwt | string | User jwt |
+  | hoursToExpire | int32 | Token duration |
   
   </details>
   
   
   <details>
-  <summary>TokenRequestWithId</summary>
+  <summary>TokenRequest</summary>
   
-  Request message for GetClaimsByKey
+  Request message for GetJwt and CheckTokenValidity
   | Field | Type | Description |
   | --- | --- | --- |
-  | id | string | Token id |
+  | token | string | Opaque token |
   
   </details>
-  
-  
-  <details>
-  <summary>TokenResponse</summary>
-  
-  Response message for CreateToken
-  | Field | Type | Description |
-  | --- | --- | --- |
-  | token | string | User token |
-  
-  </details>
-  
-  
+
   <details>
   <summary>UserResponse</summary>
   
-  Response message for GetClaimsByToken
+  Response message for CreateToken and UpdateToken
   | Field | Type | Description |
   | --- | --- | --- |
-  | id | int64 | User id |
-  | name | string | User name |
-  | appOrigin   | int32 | Application that sent the request |
-  | accessLevel | int32 | User access level |
+  | token | string | User opaque token |
   
   </details>
-  
+
   <details>
-  <summary>UserResponseWithToken</summary>
-    
-  Response message for GetClaimsByKey
+  <summary>TokenResponse</summary>
+
+  Response message for GetJwt
   | Field | Type | Description |
   | --- | --- | --- |
-  | id | int64 | User id |
-  | name | string | User name |
-  | accessLevel  | int32 | User access level |
-  | token | string | User token |
-  
+  | jwt | string | User jwt |
+
   </details>
-  
   
   <details>
   <summary>TokenStatus</summary>
