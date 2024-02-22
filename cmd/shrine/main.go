@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net"
+	"os"
 	"time"
 )
 
@@ -18,12 +19,18 @@ var start = time.Now()
 func main() {
 	log.Println("Getting environment variables")
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	isProd := os.Getenv("IS_PROD")
+	if isProd == "" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
 	}
+	appName := os.Getenv("APP_NAME")
+	appVersion := os.Getenv("APP_VERSION")
+	appEnv := os.Getenv("ENV")
 
-	log.Println("Starting gRPC shrine on", address)
+	log.Println("Starting gRPC", appName, "v"+appVersion, "("+appEnv+") on ", address)
 
 	log.Println("Starting listener")
 	listener, err := net.Listen(network, address)
