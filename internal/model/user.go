@@ -10,11 +10,16 @@ import (
 // **
 type User struct {
 	IpAddress     string `validate:"required"`
-	Token         string `validate:"omitempty,jwt"`
+	Token         string `validate:"omitempty,uuid5"`
 	HoursToExpire int32  `validate:"required,min=1"`
 }
 
 func NewUser(ipAddress string, hoursToExpire int32) (*User, error) {
+	// Setting default value for hoursToExpire
+	if hoursToExpire == 0 {
+		hoursToExpire = 1
+	}
+
 	u := User{
 		IpAddress:     ipAddress,
 		HoursToExpire: hoursToExpire,
