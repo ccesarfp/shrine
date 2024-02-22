@@ -5,7 +5,6 @@ import (
 	"github.com/ccesarfp/shrine/internal/service"
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 	"time"
@@ -29,15 +28,11 @@ func main() {
 	log.Println("Starting listener")
 	listener, err := net.Listen(network, address)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	s := grpc.NewServer()
 	protobuf.RegisterTokenServer(s, &service.Server{})
-
-	// Register reflection service on gRPC server.
-	log.Println("Starting reflection service")
-	reflection.Register(s)
 
 	log.Println("Application initialization took", time.Since(start))
 
