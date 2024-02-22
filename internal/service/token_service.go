@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/ccesarfp/shrine/internal/config"
+	"github.com/ccesarfp/shrine/internal/errors"
 	"github.com/ccesarfp/shrine/internal/model"
 	"github.com/ccesarfp/shrine/internal/protobuf"
 	"github.com/ccesarfp/shrine/pkg/util"
@@ -120,9 +121,16 @@ func (s *Server) UpdateToken(ctx context.Context, in *protobuf.UserUpdateRequest
 	}
 
 	// Updating Jwt
-	err = client.Set(ctx, op.Token, op.Jwt, exp.Sub(time.Now())).Err()
+	clientResponse := client.SetXX(ctx, op.Token, op.Jwt, exp.Sub(time.Now()))
+	err = clientResponse.Err()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	// If the token does not exist, return error
+	if clientResponse.Val() == false {
+		err = &errors.ExpiredToken{}
+		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
 	// Returning Token
