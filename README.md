@@ -11,7 +11,7 @@ It utilizes gRPC communication and stores data in Redis.
 ## Example Architecture
 
 <p align="center">
-  <img alt="Shrine Logo" src="https://drive.google.com/uc?export=view&id=1T3Os2tbp8wTVxQXaiEbB9y-7OSKOxOlu" width="800px" />
+  <img alt="Architecture Diagram" src="https://drive.google.com/uc?export=view&id=1a7duFkkFd4hPUVfX0raTU3NFmNjwq7i3" width="700px" />
 </p>
 
 ## How it Works?
