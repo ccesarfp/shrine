@@ -54,8 +54,8 @@ func (a *Application) SetupServer() {
 // setupEnvironmentVars - checks if environment variables exist, otherwise loads variables from .env
 func (a *Application) setupEnvironmentVars() {
 	log.Println("Getting environment variables")
-	isProd := os.Getenv("IS_PROD")
-	if isProd == "" {
+	hasEnvironmentVars := os.Getenv("HAS_ENV_VARS")
+	if hasEnvironmentVars == "" {
 		err := godotenv.Load()
 		if err != nil {
 			log.Fatal("Error loading .env file")
