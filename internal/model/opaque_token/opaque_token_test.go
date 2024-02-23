@@ -1,4 +1,4 @@
-package model
+package opaque_token
 
 import (
 	"reflect"
@@ -36,13 +36,13 @@ func TestNewOpaqueToken(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewOpaqueToken(tt.args.token)
+			got, err := New(tt.args.token)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("NewOpaqueToken() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("New() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewOpaqueToken() got = %v, want %v", got, tt.want)
+				t.Errorf("New() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -101,13 +101,13 @@ func TestNewOpaqueTokenWithJwt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewOpaqueTokenWithJwt(tt.args.token, tt.args.jwt)
+			got, err := NewWithJwt(tt.args.token, tt.args.jwt)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("NewOpaqueTokenWithJwt() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("NewWithJwt() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewOpaqueTokenWithJwt() got = %v, want %v", got, tt.want)
+				t.Errorf("NewWithJwt() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

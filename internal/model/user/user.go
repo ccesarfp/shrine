@@ -1,4 +1,4 @@
-package model
+package user
 
 import (
 	"github.com/go-playground/validator/v10"
@@ -14,7 +14,7 @@ type User struct {
 	HoursToExpire int32  `validate:"required,min=1"`
 }
 
-func NewUser(ipAddress string, hoursToExpire int32) (*User, error) {
+func New(ipAddress string, hoursToExpire int32) (*User, error) {
 	// Setting default value for hoursToExpire
 	if hoursToExpire == 0 {
 		hoursToExpire = 1
