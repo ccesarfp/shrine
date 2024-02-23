@@ -1,4 +1,4 @@
-package model
+package opaque_token
 
 import (
 	"github.com/go-playground/validator/v10"
@@ -9,7 +9,7 @@ type OpaqueToken struct {
 	Jwt   string `validate:"omitempty,jwt"`
 }
 
-func NewOpaqueToken(token string) (*OpaqueToken, error) {
+func New(token string) (*OpaqueToken, error) {
 	t := OpaqueToken{
 		Token: token,
 	}
@@ -23,7 +23,7 @@ func NewOpaqueToken(token string) (*OpaqueToken, error) {
 	return &t, nil
 }
 
-func NewOpaqueTokenWithJwt(token string, jwt string) (*OpaqueToken, error) {
+func NewWithJwt(token string, jwt string) (*OpaqueToken, error) {
 	t := OpaqueToken{
 		Token: token,
 		Jwt:   jwt,

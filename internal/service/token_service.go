@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
-	"github.com/ccesarfp/shrine/internal/config"
+	"github.com/ccesarfp/shrine/internal/config/redis"
 	"github.com/ccesarfp/shrine/internal/errors"
-	"github.com/ccesarfp/shrine/internal/model"
+	jwt2 "github.com/ccesarfp/shrine/internal/model/jwt"
+	"github.com/ccesarfp/shrine/internal/model/opaque_token"
+	"github.com/ccesarfp/shrine/internal/model/user"
 	"github.com/ccesarfp/shrine/internal/protobuf"
 	"github.com/ccesarfp/shrine/pkg/util"
 	"github.com/gofrs/uuid/v5"
@@ -50,13 +52,13 @@ func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*pr
 	ipAddress := p.Addr.String()
 
 	// Creating User
-	u, err := model.NewUser(ipAddress, in.HoursToExpire)
+	u, err := user.New(ipAddress, in.HoursToExpire)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	// Creating Opaque Token
-	opaqueToken, err := model.NewOpaqueToken(uuid.NewV5(uuidValue, u.IpAddress+currentTime.String()).String())
+	opaqueToken, err := opaque_token.New(uuid.NewV5(uuidValue, u.IpAddress+currentTime.String()).String())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -70,14 +72,14 @@ func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*pr
 		"ipAddress": u.IpAddress,
 		"exp":       exp.Unix(),
 	}
-	t := model.Jwt{}
+	t := jwt2.Jwt{}
 	jwtString, err := t.CreateJwt(claims, secret)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// Creating Redis Client instance
-	client, err := config.NewRedisClient()
+	client, err := redis.NewRedisClient()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -103,13 +105,13 @@ func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*pr
 // **
 func (s *Server) UpdateToken(ctx context.Context, in *protobuf.UserUpdateRequest) (*protobuf.UserResponse, error) {
 	// Creating Opaque Token
-	op, err := model.NewOpaqueTokenWithJwt(in.Token, in.Jwt)
+	op, err := opaque_token.NewWithJwt(in.Token, in.Jwt)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	// Creating Redis Client instance
-	client, err := config.NewRedisClient()
+	client, err := redis.NewRedisClient()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -149,13 +151,13 @@ func (s *Server) UpdateToken(ctx context.Context, in *protobuf.UserUpdateRequest
 // **
 func (s *Server) GetJwt(ctx context.Context, in *protobuf.TokenRequest) (*protobuf.TokenResponse, error) {
 	// Creating Opaque Token
-	ot, err := model.NewOpaqueToken(in.Token)
+	ot, err := opaque_token.New(in.Token)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	// Creating Redis Client instance
-	client, err := config.NewRedisClient()
+	client, err := redis.NewRedisClient()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -191,13 +193,13 @@ func (s *Server) GetJwt(ctx context.Context, in *protobuf.TokenRequest) (*protob
 // **
 func (s *Server) CheckTokenValidity(ctx context.Context, in *protobuf.TokenRequest) (*protobuf.TokenStatus, error) {
 	// Creating Opaque Token
-	ot, err := model.NewOpaqueToken(in.Token)
+	ot, err := opaque_token.New(in.Token)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	// Creating Redis Client instance
-	client, err := config.NewRedisClient()
+	client, err := redis.NewRedisClient()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

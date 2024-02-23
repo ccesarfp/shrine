@@ -1,4 +1,4 @@
-package model
+package jwt
 
 import (
 	"github.com/golang-jwt/jwt/v5"
@@ -37,13 +37,13 @@ func TestNewJwt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewJwt(tt.args.token)
+			got, err := New(tt.args.token)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("NewJwt() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("New() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewJwt() got = %v, want %v", got, tt.want)
+				t.Errorf("New() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -96,13 +96,13 @@ func TestNewJwtWithId1(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewJwtWithId(tt.args.id)
+			got, err := NewWithId(tt.args.id)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("NewJwtWithId() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("NewWithId() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewJwtWithId() got = %v, want %v", got, tt.want)
+				t.Errorf("NewWithId() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

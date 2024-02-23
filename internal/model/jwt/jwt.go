@@ -1,4 +1,4 @@
-package model
+package jwt
 
 import (
 	"errors"
@@ -20,7 +20,7 @@ type Jwt struct {
 
 var pattern = "^\\d+-[A-Za-z]+$"
 
-func NewJwt(token string) (*Jwt, error) {
+func New(token string) (*Jwt, error) {
 	t := Jwt{
 		Token: token,
 	}
@@ -34,7 +34,7 @@ func NewJwt(token string) (*Jwt, error) {
 	return &t, nil
 }
 
-func NewJwtWithId(id string) (*Jwt, error) {
+func NewWithId(id string) (*Jwt, error) {
 	isValid, err := util.ValidateUsingRegex(pattern, id)
 	if err != nil {
 		return nil, err
