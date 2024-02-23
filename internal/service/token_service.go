@@ -79,7 +79,7 @@ func (s *Server) CreateToken(ctx context.Context, in *protobuf.UserRequest) (*pr
 	}
 
 	// Creating Redis Client instance
-	client, err := redis.NewRedisClient()
+	client, err := redis.GetInstance()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -111,7 +111,7 @@ func (s *Server) UpdateToken(ctx context.Context, in *protobuf.UserUpdateRequest
 	}
 
 	// Creating Redis Client instance
-	client, err := redis.NewRedisClient()
+	client, err := redis.GetInstance()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -157,7 +157,7 @@ func (s *Server) GetJwt(ctx context.Context, in *protobuf.TokenRequest) (*protob
 	}
 
 	// Creating Redis Client instance
-	client, err := redis.NewRedisClient()
+	client, err := redis.GetInstance()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -199,7 +199,7 @@ func (s *Server) CheckTokenValidity(ctx context.Context, in *protobuf.TokenReque
 	}
 
 	// Creating Redis Client instance
-	client, err := redis.NewRedisClient()
+	client, err := redis.GetInstance()
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
