@@ -1,8 +1,10 @@
 compose up:
 	docker-compose up
 
-protoc:
+loadenv:
 	source ~/.bash_profile
+
+protoc:
 	protoc --proto_path=./proto/ --go_out=./ --go-grpc_out=. proto/token.proto		
 
 run:
@@ -10,3 +12,6 @@ run:
 
 test:
 	go test ./...
+
+cli:
+	go run ./cmd/shrine-cli/*
