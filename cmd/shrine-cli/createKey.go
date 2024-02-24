@@ -1,6 +1,3 @@
-/*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-*/
 package main
 
 import (
@@ -37,6 +34,7 @@ The new key will be automatically included as an environment variable or in the 
 			log.Println("Your UUID is:", v7)
 		}
 
+		// If dont use Environment Vars
 		if token == "" {
 			isInFile := false
 			envVar := search + "=" + v7.String()
@@ -80,6 +78,7 @@ The new key will be automatically included as an environment variable or in the 
 			}
 		}
 
+		// If use Environment Vars
 		if token != "" {
 			err := os.Setenv(search, v7.String())
 			if err != nil {
@@ -93,16 +92,8 @@ The new key will be automatically included as an environment variable or in the 
 func init() {
 	createKeyCmd.SuggestionsMinimumDistance = 1
 	rootCmd.AddCommand(createKeyCmd)
-	createKeyCmd.Flags().BoolVarP(
-		&show,
-		"show",
-		"s",
-		false,
+	createKeyCmd.Flags().BoolVarP(&show, "show", "s", false,
 		"displays the created value for the UUID in the terminal")
-	createKeyCmd.Flags().StringVarP(
-		&filePath,
-		"file",
-		"f",
-		"./.env",
+	createKeyCmd.Flags().StringVarP(&filePath, "file", "f", "./.env",
 		"environment variables file path")
 }

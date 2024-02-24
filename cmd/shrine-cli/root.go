@@ -1,10 +1,13 @@
 package main
 
 import (
+	"github.com/ccesarfp/shrine/internal/config/application"
 	"os"
 
 	"github.com/spf13/cobra"
 )
+
+var app *application.Application
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
