@@ -42,13 +42,13 @@ func New() *Application {
 
 // SetupServer - start application preparation
 func (a *Application) SetupServer() {
-	a.StartTime = time.Now()
+	instance.StartTime = time.Now()
 
-	a.setupEnvironmentVars()
+	instance.setupEnvironmentVars()
 
-	log.Println("Starting gRPC", a.Name, "v"+a.Version, "("+a.Version+") on", a.Address)
-	a.Server = grpc.NewServer(grpc.KeepaliveParams(kasp))
-	protobuf.RegisterTokenServer(a.Server, &service.Server{})
+	log.Println("Starting gRPC", instance.Name, "v"+instance.Version, "("+instance.Version+") on", instance.Address)
+	instance.Server = grpc.NewServer(grpc.KeepaliveParams(kasp))
+	protobuf.RegisterTokenServer(instance.Server, &service.Server{})
 }
 
 // setupEnvironmentVars - checks if environment variables exist, otherwise loads variables from .env
@@ -61,33 +61,36 @@ func (a *Application) setupEnvironmentVars() {
 			log.Fatal("Error loading .env file")
 		}
 	}
-	a.Name = os.Getenv("APP_NAME")
-	a.Version = os.Getenv("APP_VERSION")
-	a.Environment = os.Getenv("ENV")
-	a.Network = os.Getenv("NETWORK")
-	a.Address = os.Getenv("ADDRESS") + ":" + os.Getenv("PORT")
+	instance.Name = os.Getenv("APP_NAME")
+	instance.Version = os.Getenv("APP_VERSION")
+	instance.Environment = os.Getenv("ENV")
+	instance.Network = os.Getenv("NETWORK")
+	instance.Address = os.Getenv("ADDRESS") + ":" + os.Getenv("PORT")
 }
 
 // Up - Start application
 func (a *Application) Up() {
 	log.Println("Starting listener")
-	listener, err := net.Listen(a.Network, a.Address)
+	listener, err := net.Listen(instance.Network, instance.Address)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Println("Application initialization took", time.Since(a.StartTime))
-	log.Fatalf("Failed to serve: %v", a.Server.Serve(listener))
+	log.Println("Application initialization took", time.Since(instance.StartTime))
+	err = instance.Server.Serve(listener)
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
 
 // Down - shut down application
 func (a *Application) Down() {
 	log.Println("Shutting down application")
-	a.Server.GracefulStop()
+	instance.Server.GracefulStop()
 }
 
 // DownBrutally - forcefully shutdown application
 func (a *Application) DownBrutally() {
 	log.Println("Brutally shutting down application")
-	a.Server.Stop()
+	instance.Server.Stop()
 }

@@ -2,7 +2,10 @@ package util
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -39,6 +42,63 @@ func ValidateUsingRegex(pattern string, value string) (bool, error) {
 	return isValid, nil
 }
 
+// CreateUnixExpirationTime create expiration time
+// Params:
+//   - hoursToExpire: int32
+//
+// Return:
+//   - time
+//   - error
+//
+// **
 func CreateUnixExpirationTime(hoursToExpire int32) (time.Time, error) {
 	return time.Now().Add(time.Hour * time.Duration(hoursToExpire)), nil
+}
+
+// FindProcess find process
+// Params:
+//   - processName: string
+//
+// Return:
+//   - *os.Process
+//   - error
+//
+// **
+func FindProcess(processName string) (*os.Process, error) {
+	p := exec.Command("pgrep", processName)
+	output, err := p.Output()
+	if err != nil {
+		return nil, err
+	}
+
+	pid := strings.TrimSpace(string(output))
+	id, err := strconv.Atoi(pid)
+	if err != nil {
+		return nil, err
+	}
+
+	process, err := os.FindProcess(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return process, nil
+}
+
+// SendSignal send signal to process
+// Params:
+//   - p: 	   *os.Process
+//   - signal: os.sinal
+//
+// Return:
+//   - bool
+//   - error
+//
+// **
+func SendSignal(p *os.Process, signal os.Signal) (bool, error) {
+	err := p.Signal(signal)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

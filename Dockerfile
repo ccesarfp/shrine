@@ -11,4 +11,4 @@ WORKDIR /app
 COPY --from=base /src/shrine/shrine /app
 COPY --from=base /src/shrine/.env /app
 
-CMD ["./shrine"]
+CMD ["./shrine", "up"]
