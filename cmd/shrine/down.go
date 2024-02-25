@@ -1,6 +1,3 @@
-/*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-*/
 package main
 
 import (
@@ -11,10 +8,7 @@ import (
 	"syscall"
 )
 
-var (
-	processName string
-	force       bool
-)
+var force bool
 
 // downCmd represents the down command
 var downCmd = &cobra.Command{
@@ -22,9 +16,7 @@ var downCmd = &cobra.Command{
 	Short: "Stop server",
 	Long:  `Ends running the Shrine server.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		processName = "shrine"
-
-		p, err := util.FindProcess(processName)
+		p, err := util.FindProcess(ProcessName)
 		if err != nil {
 			log.Fatal(err)
 		}

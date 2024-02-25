@@ -1,6 +1,7 @@
 package util
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -71,24 +72,51 @@ func FindProcess(processName string) (*os.Process, error) {
 		return nil, err
 	}
 
-	pid := strings.TrimSpace(string(output))
-	id, err := strconv.Atoi(pid)
-	if err != nil {
-		return nil, err
+	// Checking and counting the number of processes
+	processes := strings.Split(strings.TrimSpace(string(output)), "\n")
+	if len(processes) == 1 {
+		pid := strings.TrimSpace(string(output))
+		id, err := strconv.Atoi(pid)
+		if err != nil {
+			return nil, err
+		}
+
+		process, err := os.FindProcess(id)
+		if err != nil {
+			return nil, err
+		}
+
+		return process, nil
 	}
 
-	process, err := os.FindProcess(id)
+	return nil, errors.New("more than one process running")
+
+}
+
+// CountProcess count process
+// Params:
+//   - processName: string
+//
+// Return:
+//   - int
+//   - error
+//
+// **
+func CountProcess(processName string) (int, error) {
+	p := exec.Command("pgrep", processName)
+	output, err := p.Output()
 	if err != nil {
-		return nil, err
+		return -1, err
 	}
 
-	return process, nil
+	processes := strings.Split(strings.TrimSpace(string(output)), "\n")
+	return len(processes), nil
 }
 
 // SendSignal send signal to process
 // Params:
 //   - p: 	   *os.Process
-//   - signal: os.sinal
+//   - signal: os.Signal
 //
 // Return:
 //   - bool

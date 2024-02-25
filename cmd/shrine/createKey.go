@@ -56,6 +56,7 @@ The new key will be automatically included as an environment variable or in the 
 
 			// Verifying file
 			lines := strings.Split(string(input), "\n")
+			log.Println(len(lines))
 			for i, line := range lines {
 				if strings.Contains(line, search) {
 					lines[i] = envVar
