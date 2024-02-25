@@ -21,7 +21,7 @@ var upCmd = &cobra.Command{
 
 		// Checking the number of application processes, if it more than 0, do not start the server
 		c, _ := util.CountProcess(ProcessName)
-		if c <= 0 {
+		if c <= 1 {
 			app = application.New()
 			app.SetupServer()
 
@@ -31,7 +31,7 @@ var upCmd = &cobra.Command{
 
 			app.Up()
 		}
-		if c >= 1 {
+		if c > 1 {
 			fmt.Println("A process is already running")
 		}
 
