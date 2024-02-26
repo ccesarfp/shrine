@@ -16,7 +16,7 @@ var downCmd = &cobra.Command{
 	Short: "Stop server",
 	Long:  `Ends running the Shrine server.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		p, err := util.FindProcess(ProcessName)
+		processList, err := util.FindProcess(ProcessName)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -26,9 +26,14 @@ var downCmd = &cobra.Command{
 			signal = syscall.SIGTERM
 		}
 
-		_, err = util.SendSignal(p, signal)
-		if err != nil {
-			log.Fatalln(err)
+		for _, p := range processList {
+			if p != nil {
+				_, err = util.SendSignal(p, signal)
+				if err != nil {
+					log.Fatalln(err)
+				}
+				log.Println(p.Pid, "off")
+			}
 		}
 
 	},
