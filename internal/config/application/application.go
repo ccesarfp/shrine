@@ -70,6 +70,11 @@ func (a *Application) setupEnvironmentVars() {
 
 // Up - Start application
 func (a *Application) Up() {
+	err := write(instance)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	log.Println("Starting listener")
 	listener, err := net.Listen(instance.Network, instance.Address)
 	if err != nil {
@@ -86,11 +91,19 @@ func (a *Application) Up() {
 // Down - shut down application
 func (a *Application) Down() {
 	log.Println("Shutting down application")
+	err := remove()
+	if err != nil {
+		log.Println(err)
+	}
 	instance.Server.GracefulStop()
 }
 
 // DownBrutally - forcefully shutdown application
 func (a *Application) DownBrutally() {
 	log.Println("Brutally shutting down application")
+	err := remove()
+	if err != nil {
+		log.Println(err)
+	}
 	instance.Server.Stop()
 }
