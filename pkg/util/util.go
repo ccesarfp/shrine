@@ -1,8 +1,12 @@
 package util
 
 import (
+	"errors"
 	"fmt"
+	"os"
+	"os/exec"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -39,6 +43,94 @@ func ValidateUsingRegex(pattern string, value string) (bool, error) {
 	return isValid, nil
 }
 
+// CreateUnixExpirationTime create expiration time
+// Params:
+//   - hoursToExpire: int32
+//
+// Return:
+//   - time
+//   - error
+//
+// **
 func CreateUnixExpirationTime(hoursToExpire int32) (time.Time, error) {
 	return time.Now().Add(time.Hour * time.Duration(hoursToExpire)), nil
+}
+
+// FindProcess find process
+// Params:
+//   - processName: string
+//
+// Return:
+//   - *os.Process
+//   - error
+//
+// **
+func FindProcess(processName string) ([]*os.Process, error) {
+	cmd := exec.Command("pgrep", processName)
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+
+	// Checking and counting the number of processes
+	processes := strings.Split(strings.TrimSpace(string(output)), "\n")
+	if len(processes) > 0 {
+		processList := make([]*os.Process, len(processes))
+		for i, process := range processes {
+			pid := strings.TrimSpace(string(process))
+			id, err := strconv.Atoi(pid)
+			if err != nil {
+				return nil, err
+			}
+
+			p, err := os.FindProcess(id)
+			if err != nil {
+				return nil, err
+			}
+
+			processList[i] = p
+		}
+		return processList, nil
+	}
+
+	return nil, errors.New("more than one process running")
+
+}
+
+// CountProcess count process
+// Params:
+//   - processName: string
+//
+// Return:
+//   - int
+//   - error
+//
+// **
+func CountProcess(processName string) (int, error) {
+	p := exec.Command("pgrep", processName)
+	output, err := p.Output()
+	if err != nil {
+		return -1, err
+	}
+
+	processes := strings.Split(strings.TrimSpace(string(output)), "\n")
+	return len(processes), nil
+}
+
+// SendSignal send signal to process
+// Params:
+//   - p: 	   *os.Process
+//   - signal: os.Signal
+//
+// Return:
+//   - bool
+//   - error
+//
+// **
+func SendSignal(p *os.Process, signal os.Signal) (bool, error) {
+	err := p.Signal(signal)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

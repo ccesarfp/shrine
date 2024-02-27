@@ -9,8 +9,8 @@ services:
     networks:
       - shrine-net
     depends_on:
-      - shrine-redis
-  shrine-redis:
+      - redis
+  redis:
     image: redis:7.2.4-alpine3.19
     container_name: shrine-redis
     entrypoint: redis-server --requirepass 123  --appendonly yes
