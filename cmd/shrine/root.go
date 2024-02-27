@@ -1,28 +1,28 @@
 package main
 
 import (
+	"context"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var ProcessName string = "shrine"
 
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:   "shrine",
-	Short: "Authentication microservice that enables the rapid and secure creation of JWT tokens.",
-	Long:  `Authentication microservice that enables the rapid and secure creation of JWT tokens.`,
-}
-
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
+func Execute() error {
+	// rootCmd represents the base command when called without any subcommands
+	var rootCmd = &cobra.Command{
+		Use:     "shrine",
+		Version: "1.2",
+		Short:   "Authentication microservice that enables the rapid and secure creation of JWT tokens.",
+		Long:    `Authentication microservice that enables the rapid and secure creation of JWT tokens.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
 	}
-}
 
-func init() {
-
+	rootCmd.AddCommand(createKey())
+	rootCmd.AddCommand(up())
+	rootCmd.AddCommand(status())
+	rootCmd.AddCommand(down())
+	rootCmd.Root().CompletionOptions.DisableDefaultCmd = true
+	return rootCmd.ExecuteContext(context.Background())
 }

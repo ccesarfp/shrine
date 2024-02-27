@@ -13,6 +13,7 @@ import (
 // Gob - used to store Shrine Status
 type Gob struct {
 	Name      string
+	Version   string
 	Pid       int
 	Address   string
 	StartTime time.Time
@@ -28,6 +29,7 @@ var g Gob
 func write(app *Application) error {
 	g = Gob{
 		Name:      app.Name,
+		Version:   app.Version,
 		Pid:       os.Getpid(),
 		Address:   app.Address,
 		StartTime: app.StartTime,
