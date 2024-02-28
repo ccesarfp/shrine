@@ -64,7 +64,7 @@ For testing, you can use applications like **Postman**. Just import the **Token.
 ## gRPC Documentation
 
 <details>
-<summary><h2>Token.proto</h2></summary>
+<summary>Token.proto</summary>
 
   #### Token  Service
   | Method | Request | Response | Description                                 |
