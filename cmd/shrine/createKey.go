@@ -23,8 +23,8 @@ func createKey() *cobra.Command {
 The new key will be automatically included as an environment variable or in the .env file.`,
 		Run: func(cmd *cobra.Command, args []string) {
 
-			search := "OT_SECRET_KEY"
-			token := os.Getenv(search)
+			search := "HAS_ENV_VARS"
+			hasEnvVars := os.Getenv(search)
 
 			// Creating UUID v7
 			v7, err := uuid.NewV7()
@@ -36,7 +36,7 @@ The new key will be automatically included as an environment variable or in the 
 			}
 
 			// If dont use Environment Vars
-			if token == "" {
+			if hasEnvVars == "" {
 				isInFile := false
 				envVar := search + "=" + v7.String()
 
@@ -80,7 +80,7 @@ The new key will be automatically included as an environment variable or in the 
 			}
 
 			// If use Environment Vars
-			if token != "" {
+			if hasEnvVars != "" {
 				err := os.Setenv(search, v7.String())
 				if err != nil {
 					log.Fatalln(err)
