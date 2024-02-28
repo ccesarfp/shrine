@@ -46,7 +46,7 @@ func (a *Application) SetupServer() {
 
 	instance.setupEnvironmentVars()
 
-	log.Println("Starting gRPC", instance.Name, "v"+instance.Version, "("+instance.Version+") on", instance.Address)
+	log.Println("Starting gRPC", instance.Name, "v"+instance.Version, "("+instance.Environment+") on", instance.Address)
 	instance.Server = grpc.NewServer(grpc.KeepaliveParams(kasp))
 	protobuf.RegisterTokenServer(instance.Server, &service.Server{})
 }
@@ -78,12 +78,14 @@ func (a *Application) Up() {
 	log.Println("Starting listener")
 	listener, err := net.Listen(instance.Network, instance.Address)
 	if err != nil {
+		_ = remove()
 		log.Fatal(err)
 	}
 
 	log.Println("Application initialization took", time.Since(instance.StartTime))
 	err = instance.Server.Serve(listener)
 	if err != nil {
+		_ = remove()
 		log.Fatalln(err)
 	}
 }
