@@ -6,6 +6,6 @@ import (
 
 func main() {
 	app := application.New()
-	app.SetupServer()
+	app.S.SetupServer()
 	app.Up()
 }

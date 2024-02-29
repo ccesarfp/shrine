@@ -31,8 +31,8 @@ func write(app *Application) error {
 		Name:      app.Name,
 		Version:   app.Version,
 		Pid:       os.Getpid(),
-		Address:   app.Address,
-		StartTime: app.StartTime,
+		Address:   app.S.Address,
+		StartTime: app.S.StartTime,
 		Status:    status.Running,
 	}
 

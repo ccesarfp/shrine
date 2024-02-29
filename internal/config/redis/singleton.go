@@ -22,7 +22,7 @@ func GetInstance() (*redis.Client, error) {
 	s.once.Do(func() {
 		options, err := newOptions()
 		if err != nil {
-			log.Fatalln(err)
+			log.Panicln(err)
 		}
 		s.instance = redis.NewClient(options)
 	})

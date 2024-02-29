@@ -19,7 +19,7 @@ func up() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 
 			app = application.New()
-			app.SetupServer()
+			app.S.SetupServer()
 
 			// Setting events
 			go downServer()

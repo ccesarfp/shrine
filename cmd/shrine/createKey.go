@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gofrs/uuid/v5"
 	"github.com/spf13/cobra"
 	"log"
@@ -32,7 +33,7 @@ The new key will be automatically included as an environment variable or in the 
 				log.Fatal(err)
 			}
 			if show {
-				log.Println("Your UUID is:", v7)
+				fmt.Println("Your UUID is:", v7)
 			}
 
 			// If dont use Environment Vars
@@ -43,7 +44,7 @@ The new key will be automatically included as an environment variable or in the 
 				// Verifying if file exists
 				f, err := os.OpenFile(filePath, os.O_RDWR, 0644)
 				if err != nil {
-					log.Fatal(err)
+					log.Fatalln(err)
 				}
 				defer func(f *os.File) {
 					_ = f.Close()
