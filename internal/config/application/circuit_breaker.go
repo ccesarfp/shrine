@@ -26,6 +26,7 @@ func newCircuitBreaker() *circuitBreaker {
 func (cb *circuitBreaker) errorHandler() grpcrecovery.Option {
 	return grpcrecovery.WithRecoveryHandlerContext(
 		func(ctx context.Context, p interface{}) error {
+			log.Println("Critical Error:", string(debug.Stack()))
 			errCh <- ctx.Err()
 			return status.Errorf(codes.Internal, "%s", p)
 		},
@@ -44,7 +45,6 @@ func (cb *circuitBreaker) verifyError() {
 
 // incrementError - increment error quantity and set error time
 func (cb *circuitBreaker) incrementError() {
-	log.Println("Critical Error:", string(debug.Stack()))
 	i.cb.quantity++
 	i.cb.lastTime = time.Now()
 }

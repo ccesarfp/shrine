@@ -11,7 +11,7 @@ import (
 type Application struct {
 	Name    string
 	Version string
-	S       *server
+	s       *server
 	cb      *circuitBreaker
 }
 
@@ -29,7 +29,7 @@ var (
 func New() *Application {
 	appOnce.Do(func() {
 		i = &Application{
-			S:  newServer(),
+			s:  newServer(),
 			cb: newCircuitBreaker(),
 		}
 	})
@@ -38,6 +38,8 @@ func New() *Application {
 
 // Up - Start application
 func (a *Application) Up() {
+	i.s.SetupServer()
+
 	// Writing gob
 	err := write(i)
 	if err != nil {
@@ -45,7 +47,7 @@ func (a *Application) Up() {
 	}
 
 	log.Println("Starting listener")
-	listener, err := net.Listen(i.S.Network, i.S.Address)
+	listener, err := net.Listen(i.s.Network, i.s.Address)
 	if err != nil {
 		_ = remove()
 		log.Fatalln(err)
@@ -55,8 +57,8 @@ func (a *Application) Up() {
 	go i.errorRecover()
 
 	// Starting server and starting channel
-	log.Println("Application initialization took", time.Since(i.S.StartTime))
-	errCh <- i.S.Server.Serve(listener)
+	log.Println("Application initialization took", time.Since(i.s.StartTime))
+	errCh <- i.s.Server.Serve(listener)
 	defer close(errCh)
 }
 
@@ -69,7 +71,7 @@ func (a *Application) Down() {
 		log.Println(err)
 	}
 	// Shutting down server
-	i.S.Server.GracefulStop()
+	i.s.Server.GracefulStop()
 }
 
 // DownBrutally - forcefully shutdown application
@@ -81,7 +83,7 @@ func (a *Application) DownBrutally() {
 		log.Println(err)
 	}
 	// Shutting down server
-	i.S.Server.Stop()
+	i.s.Server.Stop()
 }
 
 // errorRecover - if have errors, increment variable. If have more or exactly 3 errors, stop server

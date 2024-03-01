@@ -26,18 +26,18 @@ func newServer() *server {
 
 // SetupServer - start application preparation
 func (s *server) SetupServer() {
-	i.S.StartTime = time.Now()
+	i.s.StartTime = time.Now()
 
-	i.S.setupEnvironmentVars()
+	i.s.setupEnvironmentVars()
 
-	log.Println("Starting gRPC", i.Name, "v"+i.Version, "("+i.S.Environment+") on", i.S.Address)
-	i.S.Server = grpc.NewServer(
+	log.Println("Starting gRPC", i.Name, "v"+i.Version, "("+i.s.Environment+") on", i.s.Address)
+	i.s.Server = grpc.NewServer(
 		grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(
 			grpcrecovery.UnaryServerInterceptor(i.cb.errorHandler()),
 		)),
 		grpc.KeepaliveParams(kasp),
 	)
-	protobuf.RegisterTokenServer(i.S.Server, &service.Server{})
+	protobuf.RegisterTokenServer(i.s.Server, &service.Server{})
 }
 
 // setupEnvironmentVars - checks if environment variables exist, otherwise loads variables from .env
@@ -52,7 +52,7 @@ func (s *server) setupEnvironmentVars() {
 	}
 	i.Name = os.Getenv("APP_NAME")
 	i.Version = os.Getenv("APP_VERSION")
-	i.S.Environment = os.Getenv("ENV")
-	i.S.Network = os.Getenv("NETWORK")
-	i.S.Address = os.Getenv("ADDRESS") + ":" + os.Getenv("PORT")
+	i.s.Environment = os.Getenv("ENV")
+	i.s.Network = os.Getenv("NETWORK")
+	i.s.Address = os.Getenv("ADDRESS") + ":" + os.Getenv("PORT")
 }
