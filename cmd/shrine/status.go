@@ -41,7 +41,6 @@ func status() *cobra.Command {
 				}
 
 				// Creating Rows
-				var st statusEnum.Status
 				var rows []table.Row
 				for _, server := range servers {
 					rows = append(rows, []table.Row{
@@ -51,7 +50,7 @@ func status() *cobra.Command {
 							server.Version,
 							server.Address,
 							time.Since(server.StartTime).String(),
-							st.String(server.Status),
+							statusEnum.String(server.Status),
 						},
 					}...)
 				}

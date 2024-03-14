@@ -20,9 +20,10 @@ type Gob struct {
 	Status    uint8
 }
 
-var tmpPath = "/tmp"
-var folder = "shrine*"
-var file = "s"
+const tmpPath = "/tmp"
+const folder = "shrine*"
+const file = "s"
+
 var g Gob
 
 // write - Write Gob in temporary files
@@ -31,9 +32,9 @@ func write(app *Application) error {
 		Name:      app.Name,
 		Version:   app.Version,
 		Pid:       os.Getpid(),
-		Address:   app.Address,
-		StartTime: app.StartTime,
-		Status:    status.Running,
+		Address:   app.s.Address,
+		StartTime: app.s.StartTime,
+		Status:    status.Close,
 	}
 
 	dir, err := createOrFindDir()

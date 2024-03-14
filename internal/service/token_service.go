@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"github.com/ccesarfp/shrine/internal/config/redis"
-	"github.com/ccesarfp/shrine/internal/errors"
+	"github.com/ccesarfp/shrine/internal/errors/expired_token"
 	jwt2 "github.com/ccesarfp/shrine/internal/model/jwt"
 	"github.com/ccesarfp/shrine/internal/model/opaque_token"
 	"github.com/ccesarfp/shrine/internal/model/user"
@@ -131,7 +131,7 @@ func (s *Server) UpdateToken(ctx context.Context, in *protobuf.UserUpdateRequest
 
 	// If the token does not exist, return error
 	if clientResponse.Val() == false {
-		err = &errors.ExpiredToken{}
+		err = &expired_token.Error{}
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
