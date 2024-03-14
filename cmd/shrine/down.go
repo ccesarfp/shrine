@@ -37,11 +37,10 @@ func down() *cobra.Command {
 			// Have servers running
 			if len(servers) > 0 {
 				var items []list.Item
-				var st statusEnum.Status
 				for _, server := range servers {
 					item := server_list.NewItem(
 						strconv.Itoa(server.Pid),
-						server.Name+"(v"+server.Version+")"+" - "+server.Address+" - "+time.Since(server.StartTime).String()+" - "+st.String(server.Status),
+						server.Name+"(v"+server.Version+")"+" - "+server.Address+" - "+time.Since(server.StartTime).String()+" - "+statusEnum.String(server.Status),
 					)
 					items = append(items, item)
 				}

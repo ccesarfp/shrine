@@ -1,6 +1,7 @@
 package application
 
 import (
+	"github.com/ccesarfp/shrine/internal/enum/status"
 	"google.golang.org/grpc/keepalive"
 	"log"
 	"net"
@@ -46,7 +47,7 @@ func (a *Application) Up() {
 		log.Panicln(err)
 	}
 
-	log.Println("Starting listener")
+	log.Println("[Application] Starting listener")
 	listener, err := net.Listen(i.s.Network, i.s.Address)
 	if err != nil {
 		_ = remove()
@@ -57,14 +58,13 @@ func (a *Application) Up() {
 	go i.errorRecover()
 
 	// Starting server and starting channel
-	log.Println("Application initialization took", time.Since(i.s.StartTime))
-	errCh <- i.s.Server.Serve(listener)
-	defer close(errCh)
+	log.Println("[Application] Application initialization took", time.Since(i.s.StartTime))
+	_ = i.s.Server.Serve(listener)
 }
 
 // Down - shut down application
 func (a *Application) Down() {
-	log.Println("Shutting down application")
+	log.Println("[Application] Shutting down application")
 	// Removing gob
 	err := remove()
 	if err != nil {
@@ -76,7 +76,7 @@ func (a *Application) Down() {
 
 // DownBrutally - forcefully shutdown application
 func (a *Application) DownBrutally() {
-	log.Println("Brutally shutting down application")
+	log.Println("[Application] Brutally shutting down application")
 	// Removing gob
 	err := remove()
 	if err != nil {
@@ -93,9 +93,8 @@ func (a *Application) errorRecover() {
 		// an error has occurred, so increment variable and set error time
 		case <-errCh:
 			i.cb.incrementError()
-			if i.cb.quantity >= 3 {
-				a.DownBrutally()
-				log.Fatalf("Shutting down server. Error happened 3 times or more.")
+			if i.cb.errorsQuantity >= i.cb.maxErrors {
+				i.cb.changeStatus(status.Open)
 			}
 		// every 10 seconds check if any error occurred and 5 minutes have passed, so clear the errors and error time
 		case <-time.After(10 * time.Second):

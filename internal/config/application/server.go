@@ -30,11 +30,15 @@ func (s *server) SetupServer() {
 
 	i.s.setupEnvironmentVars()
 
-	log.Println("Starting gRPC", i.Name, "v"+i.Version, "("+i.s.Environment+") on", i.s.Address)
+	log.Println("[Server] Setting interceptors")
+	interceptorChain := grpcmiddleware.ChainUnaryServer(
+		i.cb.circuitBreakerInterceptor,
+		grpcrecovery.UnaryServerInterceptor(i.cb.errorHandler()),
+	)
+
+	log.Println("[Server] Starting gRPC", i.Name, "v"+i.Version, "("+i.s.Environment+") on", i.s.Address)
 	i.s.Server = grpc.NewServer(
-		grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(
-			grpcrecovery.UnaryServerInterceptor(i.cb.errorHandler()),
-		)),
+		grpc.UnaryInterceptor(interceptorChain),
 		grpc.KeepaliveParams(kasp),
 	)
 	protobuf.RegisterTokenServer(i.s.Server, &service.Server{})
@@ -42,7 +46,7 @@ func (s *server) SetupServer() {
 
 // setupEnvironmentVars - checks if environment variables exist, otherwise loads variables from .env
 func (s *server) setupEnvironmentVars() {
-	log.Println("Getting environment variables")
+	log.Println("[Server] Getting environment variables")
 	hasEnvironmentVars := os.Getenv("HAS_ENV_VARS")
 	if hasEnvironmentVars == "" {
 		err := godotenv.Load()
