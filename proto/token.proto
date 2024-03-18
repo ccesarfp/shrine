@@ -13,6 +13,8 @@ service Token {
   rpc GetJwt(TokenRequest) returns (TokenResponse) {}
   // receive opaque token and return if is valid
   rpc CheckTokenValidity (TokenRequest) returns (TokenStatus) {}
+  // destroy opaque token
+  rpc DestroyToken (TokenRequest) returns (DestroyStatus) {}
 }
 
 // Requests
@@ -40,5 +42,9 @@ message TokenResponse {
 }
 
 message TokenStatus {
+  bool status = 1;
+}
+
+message DestroyStatus {
   bool status = 1;
 }

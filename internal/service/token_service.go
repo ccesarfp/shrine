@@ -215,3 +215,35 @@ func (s *Server) CheckTokenValidity(ctx context.Context, in *protobuf.TokenReque
 
 	return &protobuf.TokenStatus{Status: isValid}, nil
 }
+
+// DestroyToken destroy token
+// params:
+//   - TokenRequest - user token
+//
+// result:
+//   - DestroyStatus - result of deletion
+//
+// **
+func (s *Server) DestroyToken(ctx context.Context, in *protobuf.TokenRequest) (*protobuf.DestroyStatus, error) {
+	// Creating Opaque Token
+	ot, err := opaque_token.New(in.Token)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	// Creating Redis Client instance
+	client, err := redis.GetInstance()
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	// Deleting Opaque Token
+	_, err = client.Del(ctx, ot.Token).Result()
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &protobuf.DestroyStatus{
+		Status: true,
+	}, nil
+}
